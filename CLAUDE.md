@@ -116,8 +116,9 @@ exported `*.contact.png`.
   `widgets/<slug>.html`. Without a slug, `Implement: <spec>` maps to
   `widgets/slide-<N>.html`. Implement slides are **headerless** (the widget is the
   slide). If the file is missing, a red placeholder names the expected path.
-- **`Contributions: - a - b - (Takeaway) c`** (final slide) → all points shown
-  together; the `(Takeaway)` item is a fragment that **pops on the next click**.
+- **`Contributions: - a - b - (Takeaway) c`** (final slide) → a **left-aligned
+  bullet list** (no boxes); all points shown together; the `(Takeaway)` item is
+  another bullet, **bold**, and a fragment that **pops on the next click**.
 - Anything else → centered body text.
 
 ---

@@ -233,10 +233,10 @@ function renderContrib(content) {
   const items = content.replace(/^-\s+/, '').split(/\s+-\s+/).map((s) => s.trim()).filter(Boolean);
   const html = items.map((it) => {
     const tk = it.match(/^\(Takeaway\)\s*(.*)$/i);
-    if (tk) return `<div class="takeaway fragment">${esc(tk[1])}</div>`;
-    return `<div class="point">${esc(it)}</div>`;
+    if (tk) return `<li class="takeaway fragment">${esc(tk[1])}</li>`;
+    return `<li class="point">${esc(it)}</li>`;
   }).join('');
-  return `<div class="contrib">${html}</div>`;
+  return `<ul class="contrib">${html}</ul>`;
 }
 
 /* ---------- title slide ---------- */
