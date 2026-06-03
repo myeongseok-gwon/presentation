@@ -24,22 +24,26 @@
   --stroke-w:      4px;
   --radius:        14px;
 
-  /* --- header box (fixed position/size/font across ALL slides) --- */
-  --header-top:    70px;      /* distance from slide top */
-  --header-w:      1240px;    /* fits ~33 chars of Tinos/TNR at header-fs */
-  --header-h:      150px;
+  /* --- header box (fixed position/size/font across ALL slides) ---
+     One margin drives top = left = right, so the box sits high with equal
+     gaps and stretches "almost to the edge". Height is shared with list
+     items via --box-h so the two box types match exactly. */
+  --header-margin: 64px;      /* equal gap: top == left == right */
+  --box-h:         140px;     /* identical height for header AND list items */
+  --header-w:      calc(1920px - 2 * var(--header-margin));
+  --header-top:    var(--header-margin);
   --header-fs:     62px;
   --header-padx:   40px;      /* side gaps allowed inside the box */
 
   /* --- list item boxes (vertical centered stack) --- */
   --list-w:        1120px;    /* equal width regardless of item count */
-  --list-item-minh:110px;
-  --list-gap:      30px;
+  --list-gap:      60px;      /* generous gap between stacked items */
   --list-fs:       46px;
   --list-padx:     36px;
 
   /* --- body content --- */
-  --content-top:   260px;     /* top of content region (below header) */
+  /* derived so it always clears the header box no matter the box size */
+  --content-top:   calc(var(--header-top) + var(--box-h) + 56px);
   --content-bot:   120px;     /* bottom reserved (page no / citation) */
   --body-fs:       42px;
   --caption-fs:    30px;
@@ -92,7 +96,7 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
 .reveal section.slide > .header {
   position: absolute; top: var(--header-top); left: 50%;
   transform: translateX(-50%);
-  width: var(--header-w); min-height: var(--header-h);
+  width: var(--header-w); min-height: var(--box-h);
   padding: 0 var(--header-padx);
   display: flex; align-items: center; justify-content: center;
   text-align: center;
@@ -113,28 +117,34 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
 /* When a slide has NO header, content fills the whole vertical space. */
 .reveal section.slide.no-header > .content { top: var(--edge-pad); }
 
-/* images: fit within content region, never upscale past natural size */
-.reveal .content .img-single img,
-.reveal .content .img-row img {
+/* images: fit FULLY within the content region (no trimming), never upscale */
+.reveal .content .img-single img {
   max-width: 100%; max-height: 100%;
   object-fit: contain; display: block;
 }
-.reveal .content .img-single,
-.reveal .content figure { width: 100%; height: 100%;
+.reveal .content .img-single { width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center; }
+.reveal .content figure { width: 100%; height: 100%; margin: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.reveal .content figure { margin: 0; }
-.reveal .content figcaption { font-size: var(--caption-fs); color: var(--muted);
-  text-align: center; margin-top: 18px; }
+/* min-height:0 lets the image shrink so the caption always has room */
+.reveal .content figure img { flex: 0 1 auto; min-height: 0;
+  max-width: 100%; max-height: 100%; object-fit: contain; }
+.reveal .content figcaption { flex: none; font-size: var(--caption-fs);
+  color: var(--muted); text-align: center; margin-top: 18px; }
 
-/* multiple images side-by-side, equal height, centered */
+/* multiple images side-by-side, equal height, centered.
+   min-width:0 defeats flexbox's default min-width:auto, which was forcing
+   wide images to overflow (the 3rd/4th-image trimming) instead of shrinking. */
 .reveal .content .img-row { display: flex; gap: 40px; width: 100%; height: 100%;
   align-items: center; justify-content: center; }
-.reveal .content .img-row img { max-height: 100%; width: auto; flex: 0 1 auto; }
+.reveal .content .img-row img { flex: 0 1 auto; min-width: 0;
+  max-width: 100%; max-height: 100%; object-fit: contain; }
 
 /* portrait image + prose: side-by-side split */
 .reveal .content .img-split { display: flex; gap: 60px; width: 100%; height: 100%;
   align-items: center; justify-content: center; }
-.reveal .content .img-split img { max-height: 100%; max-width: 48%; object-fit: contain; }
+.reveal .content .img-split img { flex: 0 1 auto; min-width: 0;
+  max-height: 100%; max-width: 48%; object-fit: contain; }
 .reveal .content .img-split .prose { max-width: 46%; font-size: var(--body-fs); line-height: 1.4; }
 
 /* plain body text */
@@ -151,7 +161,7 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
 .reveal .content .list { display: flex; flex-direction: column;
   gap: var(--list-gap); align-items: center; width: 100%; }
 .reveal .content .list .list-item {
-  width: var(--list-w); min-height: var(--list-item-minh);
+  width: var(--list-w); min-height: var(--box-h);
   padding: 18px var(--list-padx);
   display: flex; align-items: center; justify-content: center;
   text-align: center; line-height: 1.2;
@@ -182,10 +192,12 @@ body:not(.with-refs) .reveal .cite { display: none; }
 /* ===================== title slide ===================== */
 .reveal section.title-slide { display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center; }
-.reveal section.title-slide .title { font-size: var(--title-fs); font-weight: 700;
-  line-height: 1.1; max-width: 1500px; margin-bottom: 60px; }
-.reveal section.title-slide .meta { font-size: var(--title-meta-fs); color: var(--ink);
-  line-height: 1.5; }
+/* width:100% + text-align:center guarantees horizontal centering regardless
+   of flex shrink (a shrink-to-fit title block was sitting left of center). */
+.reveal section.title-slide .title { width: 100%; text-align: center;
+  font-size: var(--title-fs); font-weight: 700; line-height: 1.1; margin-bottom: 60px; }
+.reveal section.title-slide .meta { width: 100%; text-align: center;
+  font-size: var(--title-meta-fs); color: var(--ink); line-height: 1.5; }
 .reveal section.title-slide .meta .collab { color: var(--muted); }
 .reveal section.title-slide .nolaptop { position: absolute; bottom: 70px; left: 50%;
   transform: translateX(-50%); height: 150px; }
