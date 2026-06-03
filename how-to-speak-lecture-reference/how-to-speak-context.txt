@@ -1,0 +1,64 @@
+He is using Blackboard while teaching.
+
+He set Agenda Blackboard.
+```
+[] How to start
+[] The Tools
+    - Time & Place
+    - Boards & Props
+    - Projections
+[] Informing
+    - Promise
+    - Inspiration
+    - How to think
+[] Persuading
+    - Job Talks
+    - Getting Famous
+[] How to stop
+```
+Formula: quality = f(LARGE K, medium-size P, small-size T), K stands for Knowledge, P stands for Practice, and T stands for Talent.
+
+In his first slide, There is a title, professor's name, year, contributers, and prohibition icons for labtops and smartphones.
+
+He used small toy boxes and structuring in many ways to explain 'build fence'.
+
+He first says three props of Boards
+- Graphic quality
+- Speed
+- Target -> talk about virtue and how to put hands
+
+He then says props of Board.
+- He starts with hand-drawn potbellied stove with its opened door. And explain playwright that throw the manuscript into the stove.
+- Then he talked with a bicycle wheel.
+
+When he talked about pointers and wooden sticks, he broke the wooden one.
+
+He walked through criminal examples, and then get to informing (in agenda).
+
+And under Job Talks, he wrote two things: 'Vision' and 'Done Something', and 5 Minutes.
+From 'Vision', he wrote two items connected to it: 'Problem', 'Apporoach'.
+From 'Done Something', 'Steps' followed it. (List up steps needed.)
+And under Vision, Done something, he wrote 'Contributions' for closing.
+
+
+Winston's Star: Symbol, Slogan, Surprise, Salient Idea, Story.
+
+How to stop? He wrote two parts: Final Slides, Final Words.
+For Final Slides,
+- Contributors -> should be in the first slide, not final slide.
+- Questions? -> Worst. Squander.
+- See details in https://... -> Nobody wrote them down.
+- The End. -> Even worse.
+- Thank you -> Bad.
+- Slide with header 'Conclusions' -> Audience want to hear about 'what you did'
+    - So, 'Contributions' are better.
+        - He put some sentences, and give time to read.
+        - Then pop up the last element: what we get out of it.
+
+For Final Words
+- Joke: OK
+- Thank you: Not recommended.
+- God bless you, god bless... (Just part of jokes I guess)
+- Musical Concerts Conventions
+- ITE MISSA est
+- Salute
