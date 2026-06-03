@@ -18,15 +18,17 @@
 <section class="slide"><div class="canvas"><div class="header">Context Window</div><div class="content"><div class="img-single"><video controls preload="metadata" src="assets/.cache/finite-context-window.mp4"></video></div></div><div class="cite">Source: youtube.com</div><div class="pagenum">8/25</div></div></section>
 <section class="slide no-header"><div class="canvas"><div class="content"><div class="img-single"><img src="assets/context.png" alt=""></div></div><div class="cite">Source: youtube.com</div><div class="pagenum">9/25</div></div></section>
 <section class="slide no-header"><div class="canvas"><div class="content"><div class="img-single"><img src="assets/lost-in-the-middle.png" alt=""></div></div><div class="cite">Liu et al. (2023)</div><div class="pagenum">10/25</div></div></section>
-<section class="slide no-header"><div class="canvas"><div class="content"><div class="widget"><!-- slide-11 widget: context-window token-cost visualizer.
-     Spec: one fixed context window of tokens; #D5D4DF = Available, #D1869E =
-     Taken; token glyph = iconmonstr-database-thin.svg. The SAME question costs
-     more when the conversation has already taken ~40-60%, because answering it
-     scans from the very beginning up to the focal question. Mouse-interactive:
-     drag the slider (or press Ask) to move the question later and watch the
-     scan span — and the cost — grow. -->
+<section class="slide no-header"><div class="canvas"><div class="content"><div class="widget"><!-- slide-11 widget: context-window token-cost visualizer (animated).
+     One fixed context window of tokens. #D5D4DF = Available, #D1869E = Taken,
+     token glyph = iconmonstr-database-thin.svg.
+     Press "Ask": the model SCANS from the very start up to the focal question
+     ($1 per token, a $ pops over each scanned token and the running cost ticks
+     up), then WRITES the answer which grabs ~3 tokens (also $1 each) — IF there
+     is room. If fewer than 3 tokens remain, it AUTO-COMPACTS and re-initiates
+     the conversation. Drag the slider to place the same question earlier/later
+     and watch the cost change. -->
 <div class="ctxviz" id="ctxviz11">
-  <div class="cv-caption">One context window — a fixed number of tokens</div>
+  <div class="cv-caption">One context window — a fixed number of tokens · $1 per token</div>
 
   <div class="cv-rowwrap">
     <div class="cv-scan" id="cvScan"></div>
@@ -34,112 +36,166 @@
   </div>
 
   <div class="cv-readout">
-    Reading the <b>same</b> question costs&nbsp;
-    <span class="cv-cost" id="cvCost">3</span>&nbsp;tokens of attention
+    Total spent <span class="cv-cost" id="cvCost">$0</span>
+    <span class="cv-break" id="cvBreak"></span>
   </div>
+
+  <div class="cv-status" id="cvStatus">Drag the slider, then press “Ask”.</div>
 
   <div class="cv-controls">
     <label for="cvRange">Conversation already used:&nbsp;<b id="cvPct">10%</b></label>
-    <input type="range" id="cvRange" min="0" max="15" value="2">
+    <input type="range" id="cvRange" min="0" max="19" value="2">
     <button id="cvAsk" type="button">Ask the question ▶</button>
   </div>
-
-  <div class="cv-note">Later in the chat → longer scan from the start → higher cost.</div>
 
   <div class="cv-legend">
     <span><i class="cv-sw taken"></i> Taken</span>
     <span><i class="cv-sw avail"></i> Available</span>
     <span><i class="cv-sw q"></i> The question</span>
+    <span><i class="cv-sw ans"></i> Answer (~3)</span>
   </div>
 
   <style>
-    #ctxviz11 { --avail:#D5D4DF; --taken:#D1869E; --accent:#c0392b;
-      --tok:58px; --gap:10px;
+    #ctxviz11 { --avail:#D5D4DF; --taken:#D1869E; --answer:#3E7CB1; --accent:#c0392b;
+      --money:#2e7d32; --tok:54px; --gap:10px;
       width:100%; display:flex; flex-direction:column; align-items:center;
-      gap:30px; font-family:inherit; color:#111; }
-    #ctxviz11 .cv-caption { font-size:34px; }
-    #ctxviz11 .cv-rowwrap { position:relative; padding:14px 0 26px; }
+      gap:24px; font-family:inherit; color:#111; }
+    #ctxviz11 .cv-caption { font-size:32px; }
+    #ctxviz11 .cv-rowwrap { position:relative; padding:30px 0 14px; }
     #ctxviz11 .cv-row { display:flex; gap:var(--gap); position:relative; z-index:1; }
     #ctxviz11 .cv-cell { width:var(--tok); height:var(--tok); position:relative;
-      display:flex; align-items:center; justify-content:center; }
+      display:flex; align-items:center; justify-content:center;
+      transition:transform .35s ease, opacity .35s ease; }
     #ctxviz11 .cv-tok { width:100%; height:100%; background-color:var(--avail);
       -webkit-mask:url('assets/iconmonstr-database-thin.svg') center/contain no-repeat;
               mask:url('assets/iconmonstr-database-thin.svg') center/contain no-repeat;
       transition:background-color .18s ease; }
-    #ctxviz11 .cv-cell.taken .cv-tok { background-color:var(--taken); }
-    #ctxviz11 .cv-cell.q     .cv-tok { background-color:var(--taken); }
-    /* the question token: ringed + a "?" badge so it reads as the focal point */
-    #ctxviz11 .cv-cell.q { outline:4px solid var(--accent); outline-offset:6px; border-radius:8px; }
-    #ctxviz11 .cv-cell.q::after { content:'?'; position:absolute; top:-34px; left:50%;
-      transform:translateX(-50%); color:var(--accent); font-weight:700; font-size:30px; }
-    /* the scan span: a band from the very start up to (incl.) the question */
-    #ctxviz11 .cv-scan { position:absolute; top:6px; bottom:18px; left:0; width:0;
+    #ctxviz11 .cv-cell.taken  .cv-tok { background-color:var(--taken); }
+    #ctxviz11 .cv-cell.q      .cv-tok { background-color:var(--taken); }
+    #ctxviz11 .cv-cell.answer .cv-tok { background-color:var(--answer); }
+    #ctxviz11 .cv-cell.q { outline:4px solid var(--accent); outline-offset:5px; border-radius:8px; }
+    #ctxviz11 .cv-cell.q::after { content:'?'; position:absolute; top:-32px; left:50%;
+      transform:translateX(-50%); color:var(--accent); font-weight:700; font-size:28px; }
+    #ctxviz11 .cv-cell.collapsing { transform:scale(0); opacity:0; }
+    #ctxviz11 .cv-scan { position:absolute; top:24px; bottom:8px; left:0; width:0;
       background:rgba(255,205,0,.22); border-right:4px solid #e6a700; border-radius:6px;
-      z-index:0; transition:width .5s ease; }
-    #ctxviz11 .cv-readout { font-size:34px; text-align:center; }
-    #ctxviz11 .cv-cost { display:inline-block; vertical-align:middle;
-      font-size:82px; font-weight:700; color:var(--accent); line-height:1; margin:0 8px; }
-    #ctxviz11 .cv-controls { display:flex; align-items:center; gap:22px; font-size:30px; }
-    #ctxviz11 .cv-controls label { font-size:30px; }
-    #ctxviz11 #cvRange { width:460px; height:8px; accent-color:var(--taken); cursor:pointer; }
-    #ctxviz11 #cvAsk { font-family:inherit; font-size:26px; padding:8px 22px;
+      z-index:0; transition:width .12s linear; }
+    /* floating "$1" markers */
+    #ctxviz11 .cv-dollar { position:absolute; top:-4px; font-weight:700;
+      color:var(--money); font-size:28px; pointer-events:none; z-index:3; }
+    #ctxviz11 .cv-readout { font-size:32px; display:flex; align-items:center; gap:10px; }
+    #ctxviz11 .cv-cost { display:inline-block; font-size:72px; font-weight:700;
+      color:var(--money); line-height:1; }
+    #ctxviz11 .cv-break { font-size:24px; color:#666; }
+    #ctxviz11 .cv-status { font-size:26px; color:var(--accent); min-height:32px; }
+    #ctxviz11 .cv-controls { display:flex; align-items:center; gap:22px; font-size:28px; }
+    #ctxviz11 #cvRange { width:440px; height:8px; accent-color:var(--taken); cursor:pointer; }
+    #ctxviz11 #cvAsk { font-family:inherit; font-size:25px; padding:8px 22px;
       border:3px solid var(--accent); border-radius:12px; background:#fff;
       color:var(--accent); cursor:pointer; }
-    #ctxviz11 #cvAsk:hover { background:var(--accent); color:#fff; }
-    #ctxviz11 .cv-note { font-size:26px; color:#555; }
-    #ctxviz11 .cv-legend { display:flex; gap:46px; font-size:26px; color:#333; }
-    #ctxviz11 .cv-legend span { display:flex; align-items:center; gap:10px; }
-    #ctxviz11 .cv-sw { width:26px; height:26px; border-radius:5px; display:inline-block; }
+    #ctxviz11 #cvAsk:hover:not(:disabled) { background:var(--accent); color:#fff; }
+    #ctxviz11 #cvAsk:disabled, #ctxviz11 #cvRange:disabled { opacity:.45; cursor:default; }
+    #ctxviz11 .cv-legend { display:flex; gap:40px; font-size:24px; color:#333; }
+    #ctxviz11 .cv-legend span { display:flex; align-items:center; gap:9px; }
+    #ctxviz11 .cv-sw { width:24px; height:24px; border-radius:5px; display:inline-block; }
     #ctxviz11 .cv-sw.avail { background:var(--avail); }
     #ctxviz11 .cv-sw.taken { background:var(--taken); }
+    #ctxviz11 .cv-sw.ans   { background:var(--answer); }
     #ctxviz11 .cv-sw.q { background:var(--taken); outline:3px solid var(--accent); outline-offset:2px; }
   </style>
 
   <script>
     (function () {
       const root = document.getElementById('ctxviz11');
-      const TOTAL = 20;
-      const row   = root.querySelector('#cvRow');
-      const scan  = root.querySelector('#cvScan');
-      const cost  = root.querySelector('#cvCost');
-      const pct   = root.querySelector('#cvPct');
+      const N = 20, RESP = 3, RATE = 1, COMPACTED = 3;   // tokens, answer size, $/token, compacted length
+      const row = root.querySelector('#cvRow');
+      const scan = root.querySelector('#cvScan');
+      const costEl = root.querySelector('#cvCost');
+      const breakEl = root.querySelector('#cvBreak');
+      const statusEl = root.querySelector('#cvStatus');
+      const pct = root.querySelector('#cvPct');
       const range = root.querySelector('#cvRange');
-      const ask   = root.querySelector('#cvAsk');
+      const ask = root.querySelector('#cvAsk');
 
-      for (let i = 0; i < TOTAL; i++) {
+      for (let i = 0; i < N; i++) {
         const cell = document.createElement('div');
         cell.className = 'cv-cell';
         cell.innerHTML = '<div class="cv-tok"></div>';
         row.appendChild(cell);
       }
       const cells = Array.from(row.children);
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      let runId = 0;                                     // cancels a run in progress
 
-      function paint(taken) {
-        const q = taken;                       // question sits at the first free slot
+      function setCost(c) { costEl.textContent = '$' + c;
+        costEl.animate([{ transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 180 }); }
+      function bandTo(i) { scan.style.width = (cells[i].offsetLeft + cells[i].offsetWidth) + 'px'; }
+      function popDollar(i) {
+        const d = document.createElement('div');
+        d.className = 'cv-dollar'; d.textContent = '$1';
+        d.style.left = (cells[i].offsetLeft + cells[i].offsetWidth / 2 - 12) + 'px';
+        row.appendChild(d);
+        d.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-60px)', opacity: 0 }],
+          { duration: 650, easing: 'ease-out' }).onfinish = () => d.remove();
+      }
+
+      function staticPaint(taken) {
+        const q = taken;
         cells.forEach((c, i) => {
+          c.classList.remove('answer', 'collapsing', 'scanned');
           c.classList.toggle('taken', i < taken);
           c.classList.toggle('q', i === q);
         });
-        cost.textContent = q + 1;              // scanned = start .. question (inclusive)
-        pct.textContent = Math.round((taken / TOTAL) * 100) + '%';
-        return q;
+        scan.style.transition = 'none'; scan.style.width = '0px';
+        void scan.offsetWidth; scan.style.transition = 'width .12s linear';
+        pct.textContent = Math.round((taken / N) * 100) + '%';
+        setCost(0); breakEl.textContent = '';
       }
 
-      function sweep(animate) {
-        const q = paint(+range.value);
-        const target = cells[q].offsetLeft + cells[q].offsetWidth; // span width
-        if (animate) {                         // replay the left-to-right scan
-          scan.style.transition = 'none';
-          scan.style.width = '0px';
-          void scan.offsetWidth;               // force reflow
-          scan.style.transition = 'width .5s ease';
+      function setBusy(b) { range.disabled = b; ask.disabled = b; }
+
+      async function compact(id) {
+        statusEl.textContent = '⚠ Fewer than ' + RESP + ' tokens left — no room for the answer. Auto-compacting…';
+        cells.forEach((c) => { if (c.classList.contains('taken') || c.classList.contains('q')) c.classList.add('collapsing'); });
+        await sleep(950);
+        if (id !== runId) return;
+        range.value = COMPACTED; staticPaint(COMPACTED);
+        statusEl.textContent = '↺ Compacted & re-initiated — the long chat is summarized into ~' + COMPACTED + ' tokens. Room to answer again. Press “Ask”.';
+      }
+
+      async function run() {
+        const id = ++runId;
+        setBusy(true);
+        const taken = +range.value, q = taken;
+        const spaceAfter = N - (q + 1);
+        if (spaceAfter < RESP) { await compact(id); setBusy(false); return; }
+
+        let cost = 0;
+        statusEl.textContent = 'Scanning from the very start up to the question…';
+        for (let i = 0; i <= q; i++) {
+          if (id !== runId) return;
+          cells[i].classList.add('scanned'); bandTo(i);
+          popDollar(i); cost += RATE; setCost(cost);
+          await sleep(110);
         }
-        scan.style.width = target + 'px';
+        breakEl.textContent = '= scan ' + (q + 1);
+        statusEl.textContent = 'Writing the answer — it grabs ~' + RESP + ' tokens…';
+        for (let j = 0; j < RESP; j++) {
+          if (id !== runId) return;
+          const idx = q + 1 + j;
+          cells[idx].classList.remove('taken'); cells[idx].classList.add('answer');
+          popDollar(idx); cost += RATE; setCost(cost);
+          await sleep(280);
+        }
+        breakEl.textContent = '= scan ' + (q + 1) + ' + answer ' + RESP;
+        statusEl.textContent = 'Same question, asked here, cost $' + cost + '. Move it later → it costs more.';
+        setBusy(false);
       }
 
-      range.addEventListener('input', () => sweep(false));
-      ask.addEventListener('click', () => sweep(true));
-      sweep(false);                            // initial render
+      range.addEventListener('input', () => { ++runId; staticPaint(+range.value);
+        statusEl.textContent = 'Press “Ask” to spend tokens.'; });
+      ask.addEventListener('click', run);
+      staticPaint(+range.value);                         // initial render
     })();
   </script>
 </div>
