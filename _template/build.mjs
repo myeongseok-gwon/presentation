@@ -253,12 +253,12 @@ function renderTitle(content) {
     else if (tl.includes('no laptop') || tl.includes('no cellphone') || tl.includes('no phone')) nolaptop = true;
   });
   const rel = '../../how-to-speak-lecture-reference/no-laptop-no-phone.png';
-  return `<section class="title-slide" data-no-page>
+  return `<section class="title-slide" data-no-page><div class="canvas">
       <div class="title">${esc(title)}</div>
       <div class="meta">${esc(presenter)}<br>${esc(year)}` +
       (collab ? `<br><span class="collab">with ${esc(collab)}</span>` : '') + `</div>` +
       (nolaptop ? `<div class="nolaptop"><img src="${rel}" alt="no laptops no phones"></div>` : '') +
-    `</section>`;
+    `</div></section>`;
 }
 
 /* =========================== main =========================== */
@@ -291,7 +291,7 @@ for (let i = 0; i < lines.length; i++) {
   if (/^Implement\s*[(:]/i.test(line)) {
     const b0 = ctx.usedAssets.length;
     const inner0 = await renderContent(line, ctx);
-    slides.push({ html: `<section class="slide no-header"><div class="content">${inner0}</div>__CITE__<div class="pagenum">__N__/__TOT__</div></section>`,
+    slides.push({ html: `<section class="slide no-header"><div class="canvas"><div class="content">${inner0}</div>__CITE__<div class="pagenum">__N__/__TOT__</div></div></section>`,
                   citeFiles: ctx.usedAssets.slice(b0) });
     continue;
   }
@@ -311,7 +311,7 @@ for (let i = 0; i < lines.length; i++) {
 
   const headHtml = header ? `<div class="header">${esc(header)}</div>` : '';
   const cls = header ? 'slide' : 'slide no-header';
-  slides.push({ html: `<section class="${cls}">${headHtml}<div class="content">${inner}</div>__CITE__<div class="pagenum">__N__/__TOT__</div></section>`,
+  slides.push({ html: `<section class="${cls}"><div class="canvas">${headHtml}<div class="content">${inner}</div>__CITE__<div class="pagenum">__N__/__TOT__</div></div></section>`,
                 citeFiles });
 }
 
@@ -343,9 +343,9 @@ async function assemble({ withRefs }) {
   }
   if (withRefs && refList.length) {
     refList.sort();
-    body.push(`<section class="slide references"><div class="header">References</div>` +
+    body.push(`<section class="slide references"><div class="canvas"><div class="header">References</div>` +
       `<div class="reflist">${refList.map((r) => `<div class="ref">${esc(r)}</div>`).join('')}</div>` +
-      `<div class="pagenum">${total}/${total}</div></section>`);
+      `<div class="pagenum">${total}/${total}</div></div></section>`);
   }
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -359,8 +359,10 @@ ${body.join('\n')}
 </div></div>
 <script type="module">
 import Reveal from '${relTemplate}/vendor/reveal/reveal.esm.js';
-new Reveal({ width:1920, height:1080, margin:0.04, center:false, hash:true,
-  slideNumber:false, transition:'none' }).initialize();
+const deck = new Reveal({ width:1920, height:1080, margin:0.04, center:false, hash:true,
+  slideNumber:false, transition:'none' });
+window.__deck = deck;            // exposed so export.mjs can reconfigure/navigate
+deck.initialize();
 </script></body></html>`;
 }
 

@@ -137,9 +137,9 @@ exported `*.contact.png`.
 - **Animation:** only the final-slide takeaway pops. Everywhere else is static
   (fragments allowed only inside interactive widgets that need them).
 
-Exact box pixels live in `_template/theme.css` `:root` (currently first-cut
-values). Eyeball `_template/prototype.html`, then tune ONLY that `:root` block to
-lock them — every deck updates at once.
+Exact box pixels live in `_template/theme.css` `:root` (**locked 2026-06-03**).
+To retune later, edit ONLY that `:root` block and re-view
+`_template/prototype.html` — every deck updates at once.
 
 ---
 
@@ -175,12 +175,17 @@ Develop/test a widget in isolation, then rebuild.
 
 # Export details
 
-- **PDF:** headless Chrome (Puppeteer) loads `index*.html?print-pdf`; reveal
-  paginates 1 slide/page at 1920×1080. (First run downloads Chromium:
-  `cd _template && npm install`.)
-- **Contact sheet:** PDF → `pdftoppm` PNGs → a CSS-grid screenshot. No ImageMagick.
-- **Video → snapshot:** static PDF shows the video's first frame; widgets show
-  their initial state.
+`export.mjs` does NOT use reveal's `?print-pdf` (it re-flows the custom absolute
+layout and mis-paginates). Instead it serves the deck over a temporary local
+HTTP server — Chrome blocks ES-module imports over `file://`, so reveal would
+never load — drives the live deck in headless Chrome reconfigured to render each
+slide 1:1 at 1920×1080, screenshots every slide, and assembles those frames into
+the PDF and the contact sheet. **The PDF is exactly what you present.**
+- First run downloads Chromium: `cd _template && npm install`.
+- **Size knob:** `--scale=1` (default, native 1080p, ~5 MB/deck) or `--scale=2`
+  (retina/zoomable, ~20 MB/deck). Frames are raster, so PDFs are larger than vector.
+- **Video → snapshot:** the frame shows the video's first frame; widgets show
+  their initial state; fragments are all forced visible so the PDF is complete.
 
 ---
 

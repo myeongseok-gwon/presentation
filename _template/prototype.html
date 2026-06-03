@@ -14,7 +14,7 @@
   <div class="slides">
 
     <!-- 1: TITLE SLIDE -->
-    <section class="title-slide" data-no-page>
+    <section class="title-slide" data-no-page><div class="canvas">
       <div class="title">AI Coding Agents 101 for Business Folks</div>
       <div class="meta">
         Edgar (Myeongseok) Gwon<br>
@@ -23,20 +23,20 @@
       <div class="nolaptop">
         <img src="../how-to-speak-lecture-reference/no-laptop-no-phone.png" alt="no laptops no phones">
       </div>
-    </section>
+    </div></section>
 
     <!-- 2: HEADER + BODY TEXT -->
-    <section class="slide">
+    <section class="slide"><div class="canvas">
       <div class="header">Header: Centered, Red Stroke</div>
       <div class="content">
         <div class="body">Body text sits in the centered content region.
         A header is at most 33 characters so it fits this box.</div>
       </div>
       <div class="pagenum">2/8</div>
-    </section>
+    </div></section>
 
     <!-- 3: HEADER + LANDSCAPE IMAGE (caption below) -->
-    <section class="slide">
+    <section class="slide"><div class="canvas">
       <div class="header">Landscape Image, Caption Below</div>
       <div class="content">
         <figure>
@@ -46,10 +46,10 @@
       </div>
       <div class="cite">Anthropic (2024). Claude Code 101.</div>
       <div class="pagenum">3/8</div>
-    </section>
+    </div></section>
 
     <!-- 4: TWO IMAGES SIDE-BY-SIDE -->
-    <section class="slide">
+    <section class="slide"><div class="canvas">
       <div class="header">Two Images, Side by Side</div>
       <div class="content">
         <div class="img-row">
@@ -58,10 +58,10 @@
         </div>
       </div>
       <div class="pagenum">4/8</div>
-    </section>
+    </div></section>
 
     <!-- 5: LIST (vertical centered stack), no header -->
-    <section class="slide no-header">
+    <section class="slide no-header"><div class="canvas">
       <div class="content">
         <div class="list">
           <div class="list-item">Instructions</div>
@@ -70,10 +70,10 @@
         </div>
       </div>
       <div class="pagenum">5/8</div>
-    </section>
+    </div></section>
 
     <!-- 6: HEADER + LIST -->
-    <section class="slide">
+    <section class="slide"><div class="canvas">
       <div class="header">Start New Conversation</div>
       <div class="content">
         <div class="list">
@@ -83,10 +83,10 @@
         </div>
       </div>
       <div class="pagenum">6/8</div>
-    </section>
+    </div></section>
 
     <!-- 7: PORTRAIT IMAGE + PROSE (split) — placeholder box for the portrait -->
-    <section class="slide">
+    <section class="slide"><div class="canvas">
       <div class="header">Portrait Image + Prose Split</div>
       <div class="content">
         <div class="img-split">
@@ -97,10 +97,10 @@
         </div>
       </div>
       <div class="pagenum">7/8</div>
-    </section>
+    </div></section>
 
     <!-- 8: CONTRIBUTIONS + TAKEAWAY (takeaway is a fragment that pops last) -->
-    <section class="slide">
+    <section class="slide"><div class="canvas">
       <div class="header">Contributions</div>
       <div class="content">
         <ul class="contrib">
@@ -111,7 +111,7 @@
         </ul>
       </div>
       <div class="pagenum">8/8</div>
-    </section>
+    </div></section>
 
   </div>
 </div>
@@ -126,6 +126,7 @@
     slideNumber: false,     // we render our own 2/N in .pagenum
     transition: 'none',
   });
+  window.__deck = deck;     // exposed so export.mjs can reconfigure/navigate
   deck.initialize();
 </script>
 </body>

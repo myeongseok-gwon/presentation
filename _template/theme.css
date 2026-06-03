@@ -8,8 +8,8 @@
    Design canvas: 1920 x 1080 (16:9). Reveal is configured with
    width/height = canvas in build.mjs, so px below are canvas px.
 
-   PROTOTYPE VALUES: the geometry variables below are first-cut. Eyeball
-   prototype.html, then tweak ONLY this :root block to lock them.
+   LOCKED 2026-06-03: geometry below is approved. To retune later, edit
+   ONLY this :root block (then re-view prototype.html); every deck follows.
    ===================================================================== */
 
 :root {
@@ -82,18 +82,20 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
 /* No background images, ever (enforced). */
 .reveal .slide-background { background: var(--bg) !important; }
 
-/* Each slide is the full 1920x1080 canvas; we absolutely-position the
-   header + chrome and center the content region. (Reveal center:false.)
-   Targets ALL top-level sections (slide, title-slide, references) so each
-   gets a positioning context for its absolute children. */
-.reveal .slides > section {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  padding: 0;
+/* Reveal moves each <section> into a .pdf-page wrapper when exporting to
+   PDF, so we must NOT anchor to the section itself (it collapses to zero
+   height there, throwing absolute children onto neighbouring pages).
+   Instead every slide holds a fixed 1920x1080 .canvas that is THE
+   positioning context for header, content, page number and citation —
+   identical in live and print modes. overflow:hidden keeps each slide's
+   content strictly inside its own page. */
+.reveal .slides section { padding: 0; }
+.reveal .canvas {
+  position: relative; width: 1920px; height: 1080px; overflow: hidden;
 }
 
 /* ===================== header box ===================== */
-.reveal section.slide > .header {
+.reveal .canvas > .header {
   position: absolute; top: var(--header-top); left: 50%;
   transform: translateX(-50%);
   width: var(--header-w); min-height: var(--box-h);
@@ -107,7 +109,7 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
 }
 
 /* ===================== content region ===================== */
-.reveal section.slide > .content {
+.reveal .canvas > .content {
   position: absolute; left: 0; right: 0;
   top: var(--content-top); bottom: var(--content-bot);
   display: flex; flex-direction: column;
@@ -115,7 +117,7 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
   gap: 28px; padding: 0 var(--edge-pad); box-sizing: border-box;
 }
 /* When a slide has NO header, content fills the whole vertical space. */
-.reveal section.slide.no-header > .content { top: var(--edge-pad); }
+.reveal section.no-header .canvas > .content { top: var(--edge-pad); }
 
 /* images: fit FULLY within the content region (no trimming), never upscale */
 .reveal .content .img-single img {
@@ -184,15 +186,15 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
 .reveal .content ul.contrib li.takeaway { font-weight: 700; }
 
 /* ===================== chrome: page number + citation ===================== */
-.reveal .pagenum { position: absolute; right: var(--edge-pad); bottom: var(--edge-pad);
+.reveal .canvas .pagenum { position: absolute; right: var(--edge-pad); bottom: var(--edge-pad);
   font-size: var(--pagenum-fs); color: var(--muted); }
-.reveal .cite { position: absolute; left: var(--edge-pad); bottom: var(--edge-pad);
+.reveal .canvas .cite { position: absolute; left: var(--edge-pad); bottom: var(--edge-pad);
   font-size: var(--cite-fs); color: var(--muted); max-width: 60%; line-height: 1.25; }
 /* citation only renders in the .ref build (build.mjs adds body.with-refs) */
-body:not(.with-refs) .reveal .cite { display: none; }
+body:not(.with-refs) .reveal .canvas .cite { display: none; }
 
 /* ===================== title slide ===================== */
-.reveal section.title-slide { display: flex; flex-direction: column;
+.reveal section.title-slide .canvas { display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center; }
 /* width:100% + text-align:center guarantees horizontal centering regardless
    of flex shrink (a shrink-to-fit title block was sitting left of center). */
