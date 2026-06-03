@@ -79,8 +79,10 @@ html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
 .reveal .slide-background { background: var(--bg) !important; }
 
 /* Each slide is the full 1920x1080 canvas; we absolutely-position the
-   header + chrome and center the content region. (Reveal center:false.) */
-.reveal section.slide {
+   header + chrome and center the content region. (Reveal center:false.)
+   Targets ALL top-level sections (slide, title-slide, references) so each
+   gets a positioning context for its absolute children. */
+.reveal .slides > section {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   padding: 0;
