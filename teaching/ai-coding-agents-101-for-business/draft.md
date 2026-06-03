@@ -7,7 +7,7 @@
 - @obsidian.png
 - Context Window: @finite-context-window.mov
 - @context.png
-- @lost-in-the-middle.pngcl
+- @lost-in-the-middle.png
 - Implement: I want you to visualize what if we ask a question in the long-context conversation. There are fixed number of tokens for context window. Use  #D5D4DF: Available, #D1869E: Taken and use @iconmonstr-database-thin.svg for the token. Even same question, cost differs if it is around beginning position or if conversation already has taken about 40%~60%. It is for informing, so simplify the number of tokens, and cost concepts, don't make it small. Just let them know since we scan from very beginning to focal question, cost varies.
 - List - Monitor - Start New Conversation
 - `Monitor: Use Statusline`: @claude-code-statusline.png

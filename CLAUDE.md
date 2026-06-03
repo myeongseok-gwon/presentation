@@ -1,42 +1,198 @@
 # How to prepare presentations
 
-Professor Winston in MIT gave a meaningful lecture about 'how to speak'. I extract the script into @how-to-speak-lecture-reference/how-to-speak-context.txt, and since there are missing details in scripts like pendrawing and slides, I additionally write detailed contexts in @how-to-speak-lecture-reference/how-to-speak-context.txt.
+Professor Winston (MIT) gave a meaningful lecture, "How to Speak." The script is
+in @how-to-speak-lecture-reference/how-to-speak.en.txt, and because the script
+misses details (pen-drawing, slides), I add my own notes in
+@how-to-speak-lecture-reference/how-to-speak-context.txt. Read those for the
+*why* behind the style rules below.
 
-> One liner for this directory: `text draft with references -> web based slides`
+> One-liner for this directory: `text draft with references -> web based slides`
+
+The governing aesthetic is Winston's **"Less is More"**: blank white background,
+one font, no clutter, no decorative chrome. Every rule below serves that.
+
+---
 
 # Categories
-- teaching: Informing Purpose. audience will be undergraudate students, graduate
-- paper-review: Introducing + Critique other's paper. Including Figures and Tables in the paper. Audiences have enough background knowledge.
-- paper-presentation: Introducing my paper to others. Exposing purpose, not informing. Audiences have enough background knowledge.
 
-# Structure and Style
-Regardless of category, each directory inside three category directory will be a individual presentation. Each has /assets directory inside. And there will be some draft markdown inside. This will be like
+Each top-level category holds individual presentations (one folder = one talk).
 
-- Title: ...
-- Motivation: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-- Image1
-- Image2, Image3
-- Image4, lorem ipsum
-- Video1
-- List - Lorem ipsum - dolor sit amet - consectetur adipiscing
-- Implement Detail - (Sometimes I want you to develop web-based interactive component in the screen)
-...
-- Contributions: * ... * ... *(Takeaway) ...
+- **teaching** — *Informing.* Audience: undergraduate / graduate students.
+- **paper-review** — *Introducing + critiquing someone else's paper.* Includes
+  its figures/tables. Audience has background knowledge.
+- **paper-presentation** — *Introducing my own paper.* Exposing purpose, not
+  informing. Audience has background knowledge.
 
-Each numbered list means unique slide.
+---
 
-I don't allow background image -- it should be blank white background, we don't allow multiple font types -- only use Times New Roman. Eliminate all unnecessary things, for instance, bullets are also sometimes not needed. Winston say so in the lecture. Don't include presenter name, dates, institution logos anywhere except the first slide. Less it More.
+# Repository layout
 
-For the first slide, it has Title, Presenter(if omitted, it is Edgar (Myeongseok) Gwon), year(if omitted, use year of current date), Collaborator (if exist), sometimes I will ask you to put @how-to-speak-lecture-reference/no-laptop-no-phone.png image at the bottom of the slides if I say so.
+```
+Presentation/
+  _template/                 <- THE shared "General Template" (one source of truth)
+    theme.css                <- all geometry/fonts/box styles (edit :root to retune)
+    build.mjs                <- draft.md  -> index.html + index.ref.html
+    export.mjs               <- index*.html -> PDF + contact-sheet PNG
+    prototype.html           <- every slide type, for eyeballing box geometry
+    vendor/reveal/           <- pinned reveal.js (committed, works offline)
+    fonts/                   <- Tinos .woff2 (committed Times-New-Roman fallback)
+    package.json             <- deps (node_modules is gitignored)
+  <category>/<deck>/
+    draft.md                 <- you author this (the slide source)
+    assets/                  <- images, videos, reference.md
+    assets/.cache/           <- transcoded .mov -> .mp4 (generated)
+    assets/refs.cache.json   <- resolved citations (generated, committed)
+    widgets/<slug>.html      <- hand-coded interactive components (you/Claude write)
+    index.html               <- generated: no-ref, PRESENT THIS
+    index.ref.html           <- generated: with citations + references page
+    <deck>.pdf / .contact.png         <- exported (no-ref, primary)
+    <deck>.ref.pdf / .ref.contact.png <- exported (archival, with refs)
+```
 
-And for other slides, If there is a colon, then the left part is the header, and the right part is the content. (if I want to use colon not for separating but for text, I will wrap them like `text:text`) Header should have less than 33 characters (including spacebar). If it is longer than that, ask user to shorten with suggestion. 33 characters will fit inside the header text box. Center aligned, side-gaps are allowed inside the box, and I want red color stroke for the boxes. So basically, for all header, I want them center-aligned, with stroke. If I get satisfied with more specific details, I will let you know, then you can specify more clearly here the Claude.md so that we can leverage that information later. For header, of course, we fix the position, size (width, height), font all consistent along the presentations, regardless of the category. General Template itself. If I only refer image, then just put the image well fit. If I say a List and put some items there, then you should make center-aligned same shape boxes that can wrap the texts. It has same stroke as header, but different color. Use green for list item box strokes. When you make last slide, that might be like - Contributions: * ... * ... *(Takeaway) ..., for them, don't render everything at one slide. I need animation that the last one (takeaway) pops up at last.
+**Never hand-edit `index.html` / `index.ref.html`** — they are regenerated and
+clobbered. All durable source lives in `draft.md`, `assets/`, and `widgets/`.
+Header/list box style lives ONLY in `_template/theme.css` so every deck stays
+identical regardless of category.
 
-Add slide numbers like 2/20 should be included in the right except first slide. So we begin with 2/N.
+---
 
-After making that file, you should let me know how to run that file. I guess, sometimes I will ask you to implement with mouse control and text-input enabled things, so that it should be properly chosen. And if I confirm, export as an pdf and also print the single image that contains all slides at once as well so that I can see the birdeye view. If there are video files inside, use snapshot instead.
+# Tech stack (decided)
 
-I want two versions of presentation. I will put assets/reference.md which has list of `file name: reference`, mostly the reference will be DOI url or url. One should not include reference, one should include reference. For later one, put the reference in the left bottom side properly in the academic convention citation. Also make a reference page automatically at last. But in presentation I will use the one without reference for less distraction.
+- **Engine:** reveal.js 5 (vendored locally, no CDN). Self-contained per deck.
+- **Canvas:** 1920×1080 (16:9), white background, `center:false` (boxes are
+  positioned explicitly).
+- **Font:** `"Times New Roman", "Tinos", serif`. Times New Roman is not
+  web-embeddable, so **Tinos** (metric-identical, open) is bundled to guarantee
+  screen == PDF on any machine. Single font only — no exceptions.
+- **No build framework.** Plain Node scripts. Node ≥ 20.
 
-This file can be adjusted as time goes by and if user want to, but keep this file as a backup as well, and do version management.
+---
 
-In Icons Folder, I will collect all icons of frequently-used applications or sympols. (Like, ChatGPT, Claude, Gemini, Codex, Claude Code, Antigravity, Cursor, VS Code, etc,.) Actually you don't care at all.
+# The workflow (the loop)
+
+1. Author/receive `draft.md` (+ `assets/`, optional `assets/reference.md`).
+2. **Build:** `node _template/build.mjs <category>/<deck>`
+   → emits `index.html` (no-ref) and `index.ref.html` (with refs).
+   - `.mov` videos are transcoded to web-playable `.mp4` (cached in `assets/.cache/`).
+   - Tell the user how to view it (see Running below).
+3. **Present** from `index.html` (no-ref, less distraction).
+4. **On the user's confirmation only**, export:
+   `node _template/export.mjs <category>/<deck>`
+   → `<deck>.pdf` + `<deck>.contact.png` (no-ref, primary) and the `.ref` pair.
+5. **Commit** (see Version management).
+
+### Running
+Interactive widgets need HTTP (not `file://`). Serve the deck folder, e.g.:
+`npx serve <category>/<deck>` then open `index.html`. The bird's-eye view is the
+exported `*.contact.png`.
+
+---
+
+# Draft grammar (the build contract)
+
+`build.mjs` parses `draft.md`. **Each top-level `- ` line = exactly one slide.**
+(The earlier wording "numbered list" was wrong — the syntax is dashes.) Nested
+`-` inside a line stays *within* that slide.
+
+**Slide 1 — title:**
+`- Title: <title>, year: <YYYY>, [Presenter: <name>], [Collaborator: <name>], [No Laptops No Cellphones]`
+- Presenter defaults to **Edgar (Myeongseok) Gwon**; year defaults to the current year.
+- Collaborator rendered only if present. The `No Laptops No Cellphones` flag places
+  `how-to-speak-lecture-reference/no-laptop-no-phone.png` bottom-center.
+- This is the ONLY slide with presenter/year/collaborator, and it has **no page number**.
+
+**Every other slide:**
+- **Header:** a `:` splits `Header: content` (header = red box). Escape a literal
+  colon by wrapping in backticks — `` `Monitor: Use Statusline`: @img `` → header is
+  "Monitor: Use Statusline". **Header ≤ 33 chars**; if longer, the build halts and
+  suggests a shortened header (it does not guess).
+- **`@name.ext`** → `assets/name.ext`. Image, or `<video>` for `.mov/.mp4/.webm/.m4v`.
+- **`@a, @b`** (multiple media) → side-by-side, equal height, centered.
+- **`@img, prose`** (one image + text) → adaptive: portrait image → side-by-side
+  split (text fills the horizontal space); landscape image → caption beneath.
+- **`List - a - b - c`** → vertical centered stack of equal-width **green-stroke**
+  boxes (text wraps). Works alone or as content after a header.
+- **`Implement(slug): <spec>`** → a hand-coded interactive widget; the build injects
+  `widgets/<slug>.html`. Without a slug, `Implement: <spec>` maps to
+  `widgets/slide-<N>.html`. Implement slides are **headerless** (the widget is the
+  slide). If the file is missing, a red placeholder names the expected path.
+- **`Contributions: - a - b - (Takeaway) c`** (final slide) → all points shown
+  together; the `(Takeaway)` item is a fragment that **pops on the next click**.
+- Anything else → centered body text.
+
+---
+
+# Style rules (non-negotiable — Winston)
+
+- Blank **white** background. **No background images, ever.**
+- **One font only** (Times New Roman / Tinos). No second typeface, no icon fonts.
+- Eliminate the unnecessary — bullets only when they earn their place.
+- **No presenter name, date, or institution logo anywhere except slide 1.**
+- **Headers:** centered, red stroke, fixed position/size/font across ALL decks
+  (it's the General Template). Side-gaps inside the box are fine.
+- **List boxes:** centered, green stroke, identical shape, vertical stack.
+- **Page numbers:** `2/N` at the **bottom-right** of every slide except the title
+  (so numbering starts at `2/N`).
+- **Animation:** only the final-slide takeaway pops. Everywhere else is static
+  (fragments allowed only inside interactive widgets that need them).
+
+Exact box pixels live in `_template/theme.css` `:root` (currently first-cut
+values). Eyeball `_template/prototype.html`, then tune ONLY that `:root` block to
+lock them — every deck updates at once.
+
+---
+
+# Two versions + references
+
+Two builds from one source, differing only by a `with-refs` body class + an
+appended references slide:
+- `index.html` — **no references** (present this, less distraction).
+- `index.ref.html` — citation bottom-left (APA author-date) + an auto
+  **References** page as the last slide.
+
+`assets/reference.md` format (bare is fine): `* filename[, filename2]: <DOI or URL>`.
+Resolution at build time, cached to `assets/refs.cache.json` (committed, so
+rebuilds are offline):
+- **DOI** → tries **Crossref**, then **DataCite** (arXiv `10.48550/*`, Zenodo, etc.)
+  → `Author et al. (Year)` in-text + full reference.
+- **Non-DOI URL / failed lookup** → `Source: <host>` in-text, `Source: <url>` listed.
+- A YouTube/GitHub link has no scholarly metadata; to get a real citation, write a
+  full citation string in `reference.md` instead of a bare URL.
+
+Export builds **both** variants; no-ref is primary.
+
+---
+
+# Interactive widgets
+
+`Implement(...)` slides are bespoke. Write a self-contained
+`<deck>/widgets/<slug>.html` (scoped HTML+JS+CSS — mouse control and text input
+welcome). It survives rebuilds and is version-controlled; the build injects it.
+Develop/test a widget in isolation, then rebuild.
+
+---
+
+# Export details
+
+- **PDF:** headless Chrome (Puppeteer) loads `index*.html?print-pdf`; reveal
+  paginates 1 slide/page at 1920×1080. (First run downloads Chromium:
+  `cd _template && npm install`.)
+- **Contact sheet:** PDF → `pdftoppm` PNGs → a CSS-grid screenshot. No ImageMagick.
+- **Video → snapshot:** static PDF shows the video's first frame; widgets show
+  their initial state.
+
+---
+
+# Version management
+
+This is a **git** repo. Commit **everything** except `node_modules/` — source AND
+generated deliverables (`index*.html`, PDFs, contact sheets, `refs.cache.json`).
+This file's history is its backup; the pre-rewrite original is preserved in the
+initial commit. Edit this CLAUDE.md as the workflow evolves, and commit changes.
+
+---
+
+# Icons/
+
+A personal stash of app/symbol icons (ChatGPT, Claude, Gemini, Codex, Claude Code,
+Antigravity, Cursor, VS Code, …). Not part of the pipeline.

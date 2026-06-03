@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Template prototype — eyeball the box geometry</title>
+<link rel="stylesheet" href="./vendor/reveal/reset.css">
+<link rel="stylesheet" href="./vendor/reveal/reveal.css">
+<link rel="stylesheet" href="./theme.css">
+</head>
+<!-- with-refs => citations (bottom-left) are visible, as in the .ref build -->
+<body class="with-refs">
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1: TITLE SLIDE -->
+    <section class="title-slide" data-no-page>
+      <div class="title">AI Coding Agents 101 for Business Folks</div>
+      <div class="meta">
+        Edgar (Myeongseok) Gwon<br>
+        2026<br>
+        <span class="collab">with A. Collaborator</span>
+      </div>
+      <div class="nolaptop">
+        <img src="../how-to-speak-lecture-reference/no-laptop-no-phone.png" alt="no laptops no phones">
+      </div>
+    </section>
+
+    <!-- 2: HEADER + BODY TEXT -->
+    <section class="slide">
+      <div class="header">Header: Centered, Red Stroke</div>
+      <div class="content">
+        <div class="body">Body text sits in the centered content region.
+        A header is at most 33 characters so it fits this box.</div>
+      </div>
+      <div class="pagenum">2/8</div>
+    </section>
+
+    <!-- 3: HEADER + LANDSCAPE IMAGE (caption below) -->
+    <section class="slide">
+      <div class="header">Landscape Image, Caption Below</div>
+      <div class="content">
+        <figure>
+          <img src="../teaching/ai-coding-agents-101-for-business/assets/claude-code-101.png" alt="">
+          <figcaption>A small Times-New-Roman caption beneath the image.</figcaption>
+        </figure>
+      </div>
+      <div class="cite">Anthropic (2024). Claude Code 101.</div>
+      <div class="pagenum">3/8</div>
+    </section>
+
+    <!-- 4: TWO IMAGES SIDE-BY-SIDE -->
+    <section class="slide">
+      <div class="header">Two Images, Side by Side</div>
+      <div class="content">
+        <div class="img-row">
+          <img src="../teaching/ai-coding-agents-101-for-business/assets/codex-statusline.png" alt="">
+          <img src="../teaching/ai-coding-agents-101-for-business/assets/antigravity-statusline.png" alt="">
+        </div>
+      </div>
+      <div class="pagenum">4/8</div>
+    </section>
+
+    <!-- 5: LIST (vertical centered stack), no header -->
+    <section class="slide no-header">
+      <div class="content">
+        <div class="list">
+          <div class="list-item">Instructions</div>
+          <div class="list-item">Skills</div>
+          <div class="list-item">Subagents</div>
+        </div>
+      </div>
+      <div class="pagenum">5/8</div>
+    </section>
+
+    <!-- 6: HEADER + LIST -->
+    <section class="slide">
+      <div class="header">Start New Conversation</div>
+      <div class="content">
+        <div class="list">
+          <div class="list-item">/clear</div>
+          <div class="list-item">/compact</div>
+          <div class="list-item">/handoff</div>
+        </div>
+      </div>
+      <div class="pagenum">6/8</div>
+    </section>
+
+    <!-- 7: PORTRAIT IMAGE + PROSE (split) — placeholder box for the portrait -->
+    <section class="slide">
+      <div class="header">Portrait Image + Prose Split</div>
+      <div class="content">
+        <div class="img-split">
+          <div style="height:100%;width:46%;border:2px dashed #bbb;display:flex;
+               align-items:center;justify-content:center;color:#999;">portrait image</div>
+          <div class="prose">When the image is taller than it is wide, prose fills the
+          empty horizontal space beside it instead of sitting underneath.</div>
+        </div>
+      </div>
+      <div class="pagenum">7/8</div>
+    </section>
+
+    <!-- 8: CONTRIBUTIONS + TAKEAWAY (takeaway is a fragment that pops last) -->
+    <section class="slide">
+      <div class="header">Contributions</div>
+      <div class="content">
+        <div class="contrib">
+          <div class="point">Model-agnostic informing session of AI coding agents.</div>
+          <div class="point">Preserve key concepts while cutting programmer-only content.</div>
+          <div class="point">A clean on-ramp for business audiences.</div>
+          <div class="takeaway fragment">Choose one AI coding agent and enjoy growing with it.</div>
+        </div>
+      </div>
+      <div class="pagenum">8/8</div>
+    </section>
+
+  </div>
+</div>
+
+<script type="module">
+  import Reveal from './vendor/reveal/reveal.esm.js';
+  const deck = new Reveal({
+    width: 1920, height: 1080,
+    margin: 0.04,
+    center: false,          // we position boxes explicitly
+    hash: true,
+    slideNumber: false,     // we render our own 2/N in .pagenum
+    transition: 'none',
+  });
+  deck.initialize();
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+/* =====================================================================
+   theme.css — THE General Template (Winston "How to Speak" constraints)
+   ---------------------------------------------------------------------
+   Single source of truth for every deck, every category. Header/list
+   boxes, fonts, slide numbers, citations live ONLY here so they stay
+   identical across all presentations.
+
+   Design canvas: 1920 x 1080 (16:9). Reveal is configured with
+   width/height = canvas in build.mjs, so px below are canvas px.
+
+   PROTOTYPE VALUES: the geometry variables below are first-cut. Eyeball
+   prototype.html, then tweak ONLY this :root block to lock them.
+   ===================================================================== */
+
+:root {
+  /* --- palette (white bg, single ink, two stroke colors) --- */
+  --bg:            #ffffff;
+  --ink:           #111111;
+  --header-stroke: #c0392b;   /* red  — header boxes  */
+  --list-stroke:   #2e7d32;   /* green — list item boxes */
+  --muted:         #555555;   /* captions, citations, page numbers */
+
+  /* --- strokes / corners --- */
+  --stroke-w:      4px;
+  --radius:        14px;
+
+  /* --- header box (fixed position/size/font across ALL slides) --- */
+  --header-top:    70px;      /* distance from slide top */
+  --header-w:      1240px;    /* fits ~33 chars of Tinos/TNR at header-fs */
+  --header-h:      150px;
+  --header-fs:     62px;
+  --header-padx:   40px;      /* side gaps allowed inside the box */
+
+  /* --- list item boxes (vertical centered stack) --- */
+  --list-w:        1120px;    /* equal width regardless of item count */
+  --list-item-minh:110px;
+  --list-gap:      30px;
+  --list-fs:       46px;
+  --list-padx:     36px;
+
+  /* --- body content --- */
+  --content-top:   260px;     /* top of content region (below header) */
+  --content-bot:   120px;     /* bottom reserved (page no / citation) */
+  --body-fs:       42px;
+  --caption-fs:    30px;
+
+  /* --- chrome --- */
+  --cite-fs:       24px;
+  --pagenum-fs:    26px;
+  --edge-pad:      48px;      /* slide edge padding for chrome */
+
+  /* --- title slide --- */
+  --title-fs:      96px;
+  --title-meta-fs: 40px;
+}
+
+/* ---------------------------------------------------------------------
+   Times New Roman, with Tinos (metric-identical, embeddable) as the
+   guaranteed-consistent fallback for machines/headless-Chrome that lack
+   the real TNR. Stack order: real TNR first, then bundled Tinos.
+   --------------------------------------------------------------------- */
+@font-face { font-family:'Tinos'; font-style:normal; font-weight:400;
+  src:url('fonts/tinos-latin-400-normal.woff2') format('woff2'); font-display:swap; }
+@font-face { font-family:'Tinos'; font-style:italic; font-weight:400;
+  src:url('fonts/tinos-latin-400-italic.woff2') format('woff2'); font-display:swap; }
+@font-face { font-family:'Tinos'; font-style:normal; font-weight:700;
+  src:url('fonts/tinos-latin-700-normal.woff2') format('woff2'); font-display:swap; }
+@font-face { font-family:'Tinos'; font-style:italic; font-weight:700;
+  src:url('fonts/tinos-latin-700-italic.woff2') format('woff2'); font-display:swap; }
+
+:root { --font: "Times New Roman", "Tinos", serif; }
+
+/* ===================== base ===================== */
+.reveal            { font-family: var(--font); color: var(--ink); }
+.reveal .slides    { text-align: left; }          /* we position explicitly */
+html, body, .reveal, .reveal .backgrounds { background: var(--bg) !important; }
+
+/* No background images, ever (enforced). */
+.reveal .slide-background { background: var(--bg) !important; }
+
+/* Each slide is the full 1920x1080 canvas; we absolutely-position the
+   header + chrome and center the content region. (Reveal center:false.) */
+.reveal section.slide {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  padding: 0;
+}
+
+/* ===================== header box ===================== */
+.reveal section.slide > .header {
+  position: absolute; top: var(--header-top); left: 50%;
+  transform: translateX(-50%);
+  width: var(--header-w); min-height: var(--header-h);
+  padding: 0 var(--header-padx);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  border: var(--stroke-w) solid var(--header-stroke);
+  border-radius: var(--radius);
+  font-size: var(--header-fs); font-weight: 700; line-height: 1.1;
+  box-sizing: border-box;
+}
+
+/* ===================== content region ===================== */
+.reveal section.slide > .content {
+  position: absolute; left: 0; right: 0;
+  top: var(--content-top); bottom: var(--content-bot);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 28px; padding: 0 var(--edge-pad); box-sizing: border-box;
+}
+/* When a slide has NO header, content fills the whole vertical space. */
+.reveal section.slide.no-header > .content { top: var(--edge-pad); }
+
+/* images: fit within content region, never upscale past natural size */
+.reveal .content .img-single img,
+.reveal .content .img-row img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; display: block;
+}
+.reveal .content .img-single,
+.reveal .content figure { width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.reveal .content figure { margin: 0; }
+.reveal .content figcaption { font-size: var(--caption-fs); color: var(--muted);
+  text-align: center; margin-top: 18px; }
+
+/* multiple images side-by-side, equal height, centered */
+.reveal .content .img-row { display: flex; gap: 40px; width: 100%; height: 100%;
+  align-items: center; justify-content: center; }
+.reveal .content .img-row img { max-height: 100%; width: auto; flex: 0 1 auto; }
+
+/* portrait image + prose: side-by-side split */
+.reveal .content .img-split { display: flex; gap: 60px; width: 100%; height: 100%;
+  align-items: center; justify-content: center; }
+.reveal .content .img-split img { max-height: 100%; max-width: 48%; object-fit: contain; }
+.reveal .content .img-split .prose { max-width: 46%; font-size: var(--body-fs); line-height: 1.4; }
+
+/* plain body text */
+.reveal .content .body { font-size: var(--body-fs); line-height: 1.4; text-align: center; }
+
+/* video */
+.reveal .content video { max-width: 100%; max-height: 100%; }
+
+/* interactive widget host (injected from <deck>/widgets/<slug>.html) */
+.reveal .content .widget { width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center; }
+
+/* ===================== list (vertical centered stack) ===================== */
+.reveal .content .list { display: flex; flex-direction: column;
+  gap: var(--list-gap); align-items: center; width: 100%; }
+.reveal .content .list .list-item {
+  width: var(--list-w); min-height: var(--list-item-minh);
+  padding: 18px var(--list-padx);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; line-height: 1.2;
+  border: var(--stroke-w) solid var(--list-stroke);
+  border-radius: var(--radius);
+  font-size: var(--list-fs); box-sizing: border-box;
+}
+
+/* ===================== contributions / takeaway (final slide) ===================== */
+.reveal .content .contrib { display: flex; flex-direction: column; gap: 26px;
+  align-items: center; width: 100%; }
+.reveal .content .contrib .point { font-size: var(--body-fs); line-height: 1.35;
+  text-align: center; max-width: 1400px; }
+.reveal .content .contrib .takeaway {
+  font-weight: 700; font-size: calc(var(--body-fs) + 6px);
+  border: var(--stroke-w) solid var(--list-stroke); border-radius: var(--radius);
+  padding: 22px 40px; margin-top: 14px; text-align: center; max-width: 1400px;
+}
+
+/* ===================== chrome: page number + citation ===================== */
+.reveal .pagenum { position: absolute; right: var(--edge-pad); bottom: var(--edge-pad);
+  font-size: var(--pagenum-fs); color: var(--muted); }
+.reveal .cite { position: absolute; left: var(--edge-pad); bottom: var(--edge-pad);
+  font-size: var(--cite-fs); color: var(--muted); max-width: 60%; line-height: 1.25; }
+/* citation only renders in the .ref build (build.mjs adds body.with-refs) */
+body:not(.with-refs) .reveal .cite { display: none; }
+
+/* ===================== title slide ===================== */
+.reveal section.title-slide { display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; }
+.reveal section.title-slide .title { font-size: var(--title-fs); font-weight: 700;
+  line-height: 1.1; max-width: 1500px; margin-bottom: 60px; }
+.reveal section.title-slide .meta { font-size: var(--title-meta-fs); color: var(--ink);
+  line-height: 1.5; }
+.reveal section.title-slide .meta .collab { color: var(--muted); }
+.reveal section.title-slide .nolaptop { position: absolute; bottom: 70px; left: 50%;
+  transform: translateX(-50%); height: 150px; }
+.reveal section.title-slide .nolaptop img { height: 100%; }
+
+/* ===================== references page (last slide of .ref build) ===================== */
+.reveal section.references .header { /* uses normal header box */ }
+.reveal section.references .reflist { position: absolute; top: var(--content-top);
+  left: var(--edge-pad); right: var(--edge-pad); bottom: var(--edge-pad);
+  font-size: 28px; line-height: 1.4; overflow: auto; }
+.reveal section.references .reflist .ref {
+  text-indent: -28px; padding-left: 28px; margin-bottom: 14px; }
