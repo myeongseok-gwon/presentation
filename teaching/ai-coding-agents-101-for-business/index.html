@@ -18,7 +18,132 @@
 <section class="slide"><div class="canvas"><div class="header">Context Window</div><div class="content"><div class="img-single"><video controls preload="metadata" src="assets/.cache/finite-context-window.mp4"></video></div></div><div class="pagenum">8/24</div></div></section>
 <section class="slide no-header"><div class="canvas"><div class="content"><div class="img-single"><img src="assets/context.png" alt=""></div></div><div class="pagenum">9/24</div></div></section>
 <section class="slide no-header"><div class="canvas"><div class="content"><div class="img-single"><img src="assets/lost-in-the-middle.png" alt=""></div></div><div class="pagenum">10/24</div></div></section>
-<section class="slide no-header"><div class="canvas"><div class="content"><div class="widget"><div class="body" style="color:#c0392b">[widget 'slide-11' not yet written — create widgets/slide-11.html]<br><span style="font-size:.6em;color:#999">I want you to visualize what if we ask a question in the long-context conversation. There are fixed number of tokens for context window. Use  #D5D4DF: Available, #D1869E: Taken and use @iconmonstr-database-thin.svg for the token. Even same question, cost differs if it is around beginning position or if conversation already has taken about 40%~60%. It is for informing, so simplify the number of tokens, and cost concepts, don't make it small. Just let them know since we scan from very beginning to focal question, cost varies.</span></div></div></div><div class="pagenum">11/24</div></div></section>
+<section class="slide no-header"><div class="canvas"><div class="content"><div class="widget"><!-- slide-11 widget: context-window token-cost visualizer.
+     Spec: one fixed context window of tokens; #D5D4DF = Available, #D1869E =
+     Taken; token glyph = iconmonstr-database-thin.svg. The SAME question costs
+     more when the conversation has already taken ~40-60%, because answering it
+     scans from the very beginning up to the focal question. Mouse-interactive:
+     drag the slider (or press Ask) to move the question later and watch the
+     scan span — and the cost — grow. -->
+<div class="ctxviz" id="ctxviz11">
+  <div class="cv-caption">One context window — a fixed number of tokens</div>
+
+  <div class="cv-rowwrap">
+    <div class="cv-scan" id="cvScan"></div>
+    <div class="cv-row" id="cvRow"></div>
+  </div>
+
+  <div class="cv-readout">
+    Reading the <b>same</b> question costs&nbsp;
+    <span class="cv-cost" id="cvCost">3</span>&nbsp;tokens of attention
+  </div>
+
+  <div class="cv-controls">
+    <label for="cvRange">Conversation already used:&nbsp;<b id="cvPct">10%</b></label>
+    <input type="range" id="cvRange" min="0" max="15" value="2">
+    <button id="cvAsk" type="button">Ask the question ▶</button>
+  </div>
+
+  <div class="cv-note">Later in the chat → longer scan from the start → higher cost.</div>
+
+  <div class="cv-legend">
+    <span><i class="cv-sw taken"></i> Taken</span>
+    <span><i class="cv-sw avail"></i> Available</span>
+    <span><i class="cv-sw q"></i> The question</span>
+  </div>
+
+  <style>
+    #ctxviz11 { --avail:#D5D4DF; --taken:#D1869E; --accent:#c0392b;
+      --tok:58px; --gap:10px;
+      width:100%; display:flex; flex-direction:column; align-items:center;
+      gap:30px; font-family:inherit; color:#111; }
+    #ctxviz11 .cv-caption { font-size:34px; }
+    #ctxviz11 .cv-rowwrap { position:relative; padding:14px 0 26px; }
+    #ctxviz11 .cv-row { display:flex; gap:var(--gap); position:relative; z-index:1; }
+    #ctxviz11 .cv-cell { width:var(--tok); height:var(--tok); position:relative;
+      display:flex; align-items:center; justify-content:center; }
+    #ctxviz11 .cv-tok { width:100%; height:100%; background-color:var(--avail);
+      -webkit-mask:url('assets/iconmonstr-database-thin.svg') center/contain no-repeat;
+              mask:url('assets/iconmonstr-database-thin.svg') center/contain no-repeat;
+      transition:background-color .18s ease; }
+    #ctxviz11 .cv-cell.taken .cv-tok { background-color:var(--taken); }
+    #ctxviz11 .cv-cell.q     .cv-tok { background-color:var(--taken); }
+    /* the question token: ringed + a "?" badge so it reads as the focal point */
+    #ctxviz11 .cv-cell.q { outline:4px solid var(--accent); outline-offset:6px; border-radius:8px; }
+    #ctxviz11 .cv-cell.q::after { content:'?'; position:absolute; top:-34px; left:50%;
+      transform:translateX(-50%); color:var(--accent); font-weight:700; font-size:30px; }
+    /* the scan span: a band from the very start up to (incl.) the question */
+    #ctxviz11 .cv-scan { position:absolute; top:6px; bottom:18px; left:0; width:0;
+      background:rgba(255,205,0,.22); border-right:4px solid #e6a700; border-radius:6px;
+      z-index:0; transition:width .5s ease; }
+    #ctxviz11 .cv-readout { font-size:34px; text-align:center; }
+    #ctxviz11 .cv-cost { display:inline-block; vertical-align:middle;
+      font-size:82px; font-weight:700; color:var(--accent); line-height:1; margin:0 8px; }
+    #ctxviz11 .cv-controls { display:flex; align-items:center; gap:22px; font-size:30px; }
+    #ctxviz11 .cv-controls label { font-size:30px; }
+    #ctxviz11 #cvRange { width:460px; height:8px; accent-color:var(--taken); cursor:pointer; }
+    #ctxviz11 #cvAsk { font-family:inherit; font-size:26px; padding:8px 22px;
+      border:3px solid var(--accent); border-radius:12px; background:#fff;
+      color:var(--accent); cursor:pointer; }
+    #ctxviz11 #cvAsk:hover { background:var(--accent); color:#fff; }
+    #ctxviz11 .cv-note { font-size:26px; color:#555; }
+    #ctxviz11 .cv-legend { display:flex; gap:46px; font-size:26px; color:#333; }
+    #ctxviz11 .cv-legend span { display:flex; align-items:center; gap:10px; }
+    #ctxviz11 .cv-sw { width:26px; height:26px; border-radius:5px; display:inline-block; }
+    #ctxviz11 .cv-sw.avail { background:var(--avail); }
+    #ctxviz11 .cv-sw.taken { background:var(--taken); }
+    #ctxviz11 .cv-sw.q { background:var(--taken); outline:3px solid var(--accent); outline-offset:2px; }
+  </style>
+
+  <script>
+    (function () {
+      const root = document.getElementById('ctxviz11');
+      const TOTAL = 20;
+      const row   = root.querySelector('#cvRow');
+      const scan  = root.querySelector('#cvScan');
+      const cost  = root.querySelector('#cvCost');
+      const pct   = root.querySelector('#cvPct');
+      const range = root.querySelector('#cvRange');
+      const ask   = root.querySelector('#cvAsk');
+
+      for (let i = 0; i < TOTAL; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cv-cell';
+        cell.innerHTML = '<div class="cv-tok"></div>';
+        row.appendChild(cell);
+      }
+      const cells = Array.from(row.children);
+
+      function paint(taken) {
+        const q = taken;                       // question sits at the first free slot
+        cells.forEach((c, i) => {
+          c.classList.toggle('taken', i < taken);
+          c.classList.toggle('q', i === q);
+        });
+        cost.textContent = q + 1;              // scanned = start .. question (inclusive)
+        pct.textContent = Math.round((taken / TOTAL) * 100) + '%';
+        return q;
+      }
+
+      function sweep(animate) {
+        const q = paint(+range.value);
+        const target = cells[q].offsetLeft + cells[q].offsetWidth; // span width
+        if (animate) {                         // replay the left-to-right scan
+          scan.style.transition = 'none';
+          scan.style.width = '0px';
+          void scan.offsetWidth;               // force reflow
+          scan.style.transition = 'width .5s ease';
+        }
+        scan.style.width = target + 'px';
+      }
+
+      range.addEventListener('input', () => sweep(false));
+      ask.addEventListener('click', () => sweep(true));
+      sweep(false);                            // initial render
+    })();
+  </script>
+</div>
+</div></div><div class="pagenum">11/24</div></div></section>
 <section class="slide no-header"><div class="canvas"><div class="content"><div class="list"><div class="list-item">Monitor</div><div class="list-item">Start New Conversation</div></div></div><div class="pagenum">12/24</div></div></section>
 <section class="slide"><div class="canvas"><div class="header">Monitor: Use Statusline</div><div class="content"><div class="img-single"><img src="assets/claude-code-statusline.png" alt=""></div></div><div class="pagenum">13/24</div></div></section>
 <section class="slide no-header"><div class="canvas"><div class="content"><div class="img-row"><img src="assets/codex-statusline.png" alt=""><img src="assets/antigravity-statusline.png" alt=""></div></div><div class="pagenum">14/24</div></div></section>
