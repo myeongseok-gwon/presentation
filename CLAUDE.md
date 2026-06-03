@@ -198,6 +198,21 @@ initial commit. Edit this CLAUDE.md as the workflow evolves, and commit changes.
 
 ---
 
+# Publishing (share out)
+
+The repo is public at **github.com/myeongseok-gwon/presentation** and served live
+via **GitHub Pages** (master branch, root). Live deck URLs follow:
+`https://myeongseok-gwon.github.io/presentation/<category>/<deck>/index.html`.
+The `README.md` is the index of live links. Every `git push` to master
+re-publishes automatically (build takes ~1 min).
+
+**`.nojekyll` (root) is required** — Pages runs Jekyll by default, which drops
+`_`-prefixed (`_template/`) and `.`-prefixed (`assets/.cache/`) dirs, breaking
+the deck. Do not remove it. To add a deck to the index, add a row to `README.md`
+with the URL pattern above.
+
+---
+
 # Icons/
 
 A personal stash of app/symbol icons (ChatGPT, Claude, Gemini, Codex, Claude Code,
