@@ -110,6 +110,11 @@ exported `*.contact.png`.
 - **`@a, @b`** (multiple media) → side-by-side, equal height, centered.
 - **`@img, prose`** (one image + text) → adaptive: portrait image → side-by-side
   split (text fills the horizontal space); landscape image → caption beneath.
+- **YouTube URL** (`https://youtu.be/ID?t=90`, `…/watch?v=ID&t=1m30s`, `…/embed/ID`,
+  `…/shorts/ID`) → embedded player sized to the largest 16:9 box that fits. A
+  timestamp in the URL (`t=`/`start=`, as `90`, `90s`, or `1m30s`) sets the start.
+  In the `.ref` build it auto-cites as `Source: youtube.com`; in the exported PDF
+  it shows the video's thumbnail. Works bare or as content after a header.
 - **`List - a - b - c`** → vertical centered stack of equal-width **green-stroke**
   boxes (text wraps). Works alone or as content after a header.
 - **`Implement(slug): <spec>`** → a hand-coded interactive widget; the build injects
@@ -140,6 +145,75 @@ exported `*.contact.png`.
 Exact box pixels live in `_template/theme.css` `:root` (**locked 2026-06-03**).
 To retune later, edit ONLY that `:root` block and re-view
 `_template/prototype.html` — every deck updates at once.
+
+---
+
+# Locked visual specification (the concrete numbers)
+
+This is the durable style contract. To reproduce the look in a **completely new
+project**, the fastest path is to copy `_template/` wholesale; the values below
+are the human-readable contract that `_template/theme.css` `:root` implements
+(the source of truth). Keep these identical across every project for a uniform
+house style.
+
+**Canvas & engine.** reveal.js 5; slide size **1920×1080** (16:9); `center:false`,
+`transition:'none'`, `margin:0.04`. Every slide's content lives inside a fixed
+**1920×1080 `.canvas`** (`position:relative; overflow:hidden`) — that canvas, not
+the `<section>`, is the positioning context for the header/content/chrome, which
+is what keeps layout intact through reveal's export reflow.
+
+**Color — the entire palette, nothing else:**
+
+| Token | Hex | Use |
+|---|---|---|
+| background | `#ffffff` | every slide; **no images, ever** |
+| ink | `#111111` | all text |
+| header stroke | `#c0392b` (red) | header box border — the one accent |
+| list stroke | `#2e7d32` (green) | list-item box borders |
+| muted | `#555555` | captions, page numbers, citations |
+
+**One font:** `"Times New Roman", "Tinos", serif`. Tinos (metric-identical, open)
+is bundled in `_template/fonts/` so screen == PDF anywhere. No second typeface,
+no icon fonts. Bold = 700, everything else 400.
+
+**Strokes / corners:** `4px` solid border, `14px` radius — both box types.
+
+**Type scale** (px on the 1920×1080 canvas): title `96` · header `62` ·
+list item `46` · body `42` · caption `30` · page number `26` · citation `24`.
+
+**Header box:** centered, red stroke; a single margin sets **top = left = right =
+64px**, so width = `1920 − 128 = 1792px`, height **140px** (sits high, equal gaps
+all around). Text centered, bold, **≤ 33 chars** (build halts with a suggestion
+past that).
+
+**List boxes:** green stroke, **vertical centered stack**, equal width **1120px**,
+height **140px** (identical to the header), **60px** gap; text wraps and centers.
+
+**Body / media:** body & split-prose `42px`; captions `30px` muted, centered.
+Images fit fully (never trimmed, never upscaled); multiple images sit side-by-side
+at equal height; a portrait image + prose splits left/right, a landscape image +
+prose captions beneath. Edge padding `48px`.
+
+**Chrome:** page number `N/total` bottom-right, every slide except the title.
+Citation (`.ref` build only) bottom-left, APA author-date.
+
+**Title slide:** title `96px` bold centered; below it presenter (default *Edgar
+(Myeongseok) Gwon*), year (default current), optional collaborator (muted); the
+`No Laptops No Cellphones` flag adds that icon (`150px`) bottom-center. No page
+number — the only slide carrying presenter/year/collaborator.
+
+**Contributions (final slide):** left-aligned disc bullets at body size; the
+`(Takeaway)` item is the same bullet but **bold**, and a fragment that pops on the
+next click. No box.
+
+**Animation:** the takeaway pop is the ONLY animation; every other slide is
+static. Fragments are allowed only *inside* interactive widgets.
+
+**Interactive-widget palette** (so `Implement` widgets stay on-brand): reuse the
+deck palette, plus when a widget needs extra accents — secondary/answer `#3E7CB1`
+(blue), positive/money `#2e7d32` (green), focal `#c0392b` (red). Keep the single
+serif font (controls `font-family:inherit`); motion purposeful and legible
+("informing — don't make it small").
 
 ---
 

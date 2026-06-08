@@ -3,7 +3,7 @@
    build.mjs — draft.md  ->  index.html (no-ref) + index.ref.html (ref)
    ---------------------------------------------------------------------
    Usage:  node _template/build.mjs <category>/<deck>
-   e.g.    node _template/build.mjs teaching/ai-coding-agents-101-for-business
+   e.g.    node _template/build.mjs teaching/ai-coding-agents-101-for-everyone
 
    Grammar (see CLAUDE.md "Draft grammar" for the canonical spec):
      - Each top-level "- " line in draft.md = ONE slide.
@@ -170,6 +170,34 @@ async function resolveRef(raw, cache) {
   return out;
 }
 
+/* ---------- YouTube: detect a URL token, extract id + start time ---------- */
+const YT_RE = /(?:youtube\.com\/(?:watch|embed|shorts|live)|youtu\.be\/)/i;
+function ytSeconds(t) {                       // "90" | "90s" | "1m30s" | "1h2m3s" -> seconds
+  if (!t) return 0;
+  if (/^\d+$/.test(t)) return parseInt(t, 10);
+  let s = 0, m; const re = /(\d+)\s*(h|m|s)/gi;
+  while ((m = re.exec(t))) s += (+m[1]) * ({ h: 3600, m: 60, s: 1 }[m[2].toLowerCase()]);
+  return s;
+}
+function parseYouTube(url) {
+  if (!YT_RE.test(url)) return null;
+  let U; try { U = new URL(/^https?:\/\//i.test(url) ? url : 'https://' + url); } catch { return null; }
+  let id = '';
+  if (/(^|\.)youtu\.be$/i.test(U.hostname)) id = U.pathname.split('/')[1] || '';
+  else if (/(^|\.)youtube\.com$/i.test(U.hostname)) {
+    id = U.pathname === '/watch' ? (U.searchParams.get('v') || '') : (U.pathname.split('/')[2] || '');
+  }
+  if (!id) return null;
+  const t = U.searchParams.get('start') || U.searchParams.get('t') || (U.hash.match(/t=([\dhms]+)/i)?.[1]) || '';
+  return { id, start: ytSeconds(t), url };
+}
+function ytEmbed(yt) {
+  const src = `https://www.youtube.com/embed/${yt.id}?rel=0${yt.start ? `&start=${yt.start}` : ''}`;
+  return `<iframe class="yt-frame" src="${src}" title="YouTube video" loading="lazy" frameborder="0"` +
+    ` allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"` +
+    ` allowfullscreen></iframe>`;
+}
+
 /* ---------- render the content region for one slide ---------- */
 async function renderContent(content, ctx) {
   // --- Implement(slug): widget ---
@@ -191,12 +219,23 @@ async function renderContent(content, ctx) {
     return `<div class="list">${items.map((i) => `<div class="list-item">${esc(i)}</div>`).join('')}</div>`;
   }
 
-  // --- tokens: media (@x) and prose, comma-separated ---
+  // --- tokens: media (@x), YouTube URLs, and prose, comma-separated ---
   const tokens = content.split(',').map((t) => t.trim()).filter(Boolean);
-  const media = [], prose = [];
+  const media = [], prose = [], yts = [];
   for (const t of tokens) {
     const m = t.match(/^@(\S+)$/);
-    if (m) media.push(m[1]); else prose.push(t);
+    if (m) { media.push(m[1]); continue; }
+    const yt = parseYouTube(t);
+    if (yt) { yts.push(yt); refMap[yt.url] ||= yt.url; ctx.usedAssets.push(yt.url); continue; }
+    prose.push(t);
+  }
+
+  // --- YouTube embed(s): the largest 16:9 box that fits the content region ---
+  if (yts.length && !media.length) {
+    const frames = yts.map(ytEmbed).join('');
+    if (yts.length > 1) return `<div class="yt-row">${frames}</div>`;
+    if (prose.length) return `<figure class="yt-fig">${frames}<figcaption>${esc(prose.join(', '))}</figcaption></figure>`;
+    return `<div class="yt">${frames}</div>`;
   }
 
   const mediaTag = async (name) => {
