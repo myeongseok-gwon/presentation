@@ -82,9 +82,14 @@ identical regardless of category.
 5. **Commit** (see Version management).
 
 ### Running
-Interactive widgets need HTTP (not `file://`). Serve the deck folder, e.g.:
-`npx serve <category>/<deck>` then open `index.html`. The bird's-eye view is the
-exported `*.contact.png`.
+Interactive widgets need HTTP (not `file://`). **Serve the repo ROOT, not the
+deck folder** — the generated `index.html` links the theme/reveal as
+`../../_template/…` (the same relative paths GitHub Pages resolves), so those
+files must be reachable above the deck. Serving the deck folder makes
+`theme.css` 404 and the styling collapses. From the repo root:
+`npx serve .` (or `python3 -m http.server 8080`), then open
+`http://localhost:<port>/<category>/<deck>/index.html`. The bird's-eye view is
+the exported `*.contact.png`.
 
 ---
 

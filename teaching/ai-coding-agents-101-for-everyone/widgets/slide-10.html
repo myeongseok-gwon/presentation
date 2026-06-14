@@ -1,0 +1,166 @@
+<!-- slide-10 widget: how a conversation "stocks up" the context window (animated).
+     One fixed context window of N tokens. #D5D4DF = Available.
+     Each turn fills a contiguous block of tokens, colored by who spoke:
+       your questions = #D1869E (pink), the agent's answers = #3E7CB1 (blue)
+     — the SAME colors the next slide (slide-15) reuses, so the audience already
+     knows them. Press "Next message ▶": the next turn's token block fills in and
+     lights up next to its chat bubble, so "this question -> these tokens, this
+     answer -> those tokens" is read directly. Sibling of slide-15 (same glyph,
+     same 54px token, same 20-token window). -->
+<div class="cwviz" id="cwviz10">
+  <div class="cw-window" id="cwWindow"></div>
+
+  <div class="cw-status" id="cwStatus"></div>
+
+  <div class="cw-controls">
+    <button id="cwNext" type="button">Next message ▶</button>
+    <button id="cwReset" type="button" class="ghost">Reset</button>
+  </div>
+
+  <div class="cw-legend">
+    <span><i class="cw-sw you"></i> Your questions</span>
+    <span><i class="cw-sw agent"></i> Agent's answers</span>
+    <span><i class="cw-sw avail"></i> Available</span>
+  </div>
+
+  <style>
+    #cwviz10 { --avail:#D5D4DF; --you:#D1869E; --agent:#3E7CB1; --accent:#c0392b;
+      --tok:54px; --gap:10px;
+      width:100%; display:flex; flex-direction:column; align-items:center;
+      gap:30px; font-family:inherit; color:#111; }
+
+    /* the window: a row of contiguous labeled segments, aligned to the bottom */
+    #cwviz10 .cw-window { display:flex; align-items:flex-end; gap:14px;
+      padding-top:78px; }                       /* room for the labels above */
+    #cwviz10 .cw-seg { position:relative; display:flex; flex-direction:column;
+      align-items:center; transition:transform .35s ease; }
+    #cwviz10 .cw-seg.active { transform:translateY(-14px); }
+    #cwviz10 .cw-seg-label { position:absolute; bottom:calc(var(--tok) + 22px);
+      white-space:nowrap; font-size:25px; line-height:1.05; text-align:center;
+      opacity:0; transition:opacity .3s ease; }
+    #cwviz10 .cw-seg.shown .cw-seg-label { opacity:1; }
+    #cwviz10 .cw-seg-label b { font-size:27px; }
+    #cwviz10 .cw-seg.you   .cw-seg-label { color:var(--you); }
+    #cwviz10 .cw-seg.agent .cw-seg-label { color:var(--agent); }
+    #cwviz10 .cw-seg.avail .cw-seg-label { color:#777; opacity:1; }
+
+    #cwviz10 .cw-cells { display:flex; gap:var(--gap); }
+    #cwviz10 .cw-cell { width:var(--tok); height:var(--tok); }
+    #cwviz10 .cw-tok { width:100%; height:100%; background-color:var(--avail);
+      -webkit-mask:url('assets/iconmonstr-database-thin.svg') center/contain no-repeat;
+              mask:url('assets/iconmonstr-database-thin.svg') center/contain no-repeat;
+      transition:background-color .3s ease, transform .25s ease; }
+    /* The whole context window is visible as gray (available) from the very
+       start, so the full window reads at a glance. A turn does NOT add tokens —
+       it RECOLORS its block in place, gray -> role color, sweeping left-to-right
+       via each token's transition-delay, with a small pop on the block sent. */
+    #cwviz10 .cw-seg.you.shown   .cw-tok { background-color:var(--you); }
+    #cwviz10 .cw-seg.agent.shown .cw-tok { background-color:var(--agent); }
+    #cwviz10 .cw-seg.active .cw-tok { animation:cwPop .45s ease; }
+    @keyframes cwPop { 0%{transform:scale(1)} 45%{transform:scale(1.16)} 100%{transform:scale(1)} }
+    /* a colored bracket under a revealed conversation segment */
+    #cwviz10 .cw-seg.you.shown   .cw-cells,
+    #cwviz10 .cw-seg.agent.shown .cw-cells { box-shadow:0 6px 0 -2px currentColor; }
+    #cwviz10 .cw-seg.you.shown   { color:var(--you); }
+    #cwviz10 .cw-seg.agent.shown { color:var(--agent); }
+
+    #cwviz10 .cw-status { font-size:30px; min-height:40px; text-align:center;
+      max-width:1500px; }
+    #cwviz10 .cw-status .who { font-weight:700; }
+    #cwviz10 .cw-status .you   { color:var(--you); }
+    #cwviz10 .cw-status .agent { color:var(--agent); }
+
+    #cwviz10 .cw-controls { display:flex; gap:22px; }
+    #cwviz10 .cw-controls button { font-family:inherit; font-size:26px;
+      padding:9px 26px; border:3px solid var(--accent); border-radius:12px;
+      background:#fff; color:var(--accent); cursor:pointer; }
+    #cwviz10 .cw-controls button:hover:not(:disabled) { background:var(--accent); color:#fff; }
+    #cwviz10 .cw-controls button.ghost { border-color:#999; color:#555; }
+    #cwviz10 .cw-controls button.ghost:hover:not(:disabled) { background:#777; color:#fff; }
+    #cwviz10 .cw-controls button:disabled { opacity:.4; cursor:default; }
+
+    #cwviz10 .cw-legend { display:flex; gap:48px; font-size:24px; color:#333; }
+    #cwviz10 .cw-legend span { display:flex; align-items:center; gap:9px; }
+    #cwviz10 .cw-sw { width:24px; height:24px; border-radius:5px; display:inline-block; }
+    #cwviz10 .cw-sw.you   { background:var(--you); }
+    #cwviz10 .cw-sw.agent { background:var(--agent); }
+    #cwviz10 .cw-sw.avail { background:var(--avail); }
+  </style>
+
+  <script>
+    (function () {
+      const root = document.getElementById('cwviz10');
+      const N = 20;                                       // same window as slide-15
+      const TURNS = [
+        { role:'you',   tok:2, label:'You ask',     desc:'“Build me a to-do app.”' },
+        { role:'agent', tok:5, label:'Agent answers', desc:'code + an explanation' },
+        { role:'you',   tok:2, label:'You ask',     desc:'“Now add a dark mode.”' },
+        { role:'agent', tok:5, label:'Agent answers', desc:'updated files + notes' },
+      ];
+      const used = TURNS.reduce((s, t) => s + t.tok, 0);
+      const AVAIL = N - used;
+
+      const win = root.querySelector('#cwWindow');
+      const statusEl = root.querySelector('#cwStatus');
+      const nextBtn = root.querySelector('#cwNext');
+      const resetBtn = root.querySelector('#cwReset');
+
+      // build one segment (a labeled block of `tok` token cells)
+      function makeSeg(cls, labelHtml, tok) {
+        const seg = document.createElement('div');
+        seg.className = 'cw-seg ' + cls;
+        const label = document.createElement('div');
+        label.className = 'cw-seg-label';
+        label.innerHTML = labelHtml;
+        const cells = document.createElement('div');
+        cells.className = 'cw-cells';
+        for (let i = 0; i < tok; i++) {
+          const c = document.createElement('div');
+          c.className = 'cw-cell';
+          c.innerHTML = '<div class="cw-tok" style="transition-delay:' + (i * 70) + 'ms"></div>';
+          cells.appendChild(c);
+        }
+        seg.appendChild(label); seg.appendChild(cells);
+        return seg;
+      }
+
+      const segs = TURNS.map((t) =>
+        makeSeg(t.role, '<b>' + t.label + '</b><br>×' + t.tok + ' tokens', t.tok));
+      const availSeg = makeSeg('avail', '', AVAIL);   // gray remainder, no label
+      segs.forEach((s) => win.appendChild(s));
+      win.appendChild(availSeg);
+
+      let step = 0;                                       // how many turns revealed
+
+      function render() {
+        segs.forEach((s, i) => {
+          s.classList.toggle('shown', i < step);
+          s.classList.toggle('active', i === step - 1);
+        });
+        if (step === 0) {
+          statusEl.innerHTML = '';
+        } else {
+          const t = TURNS[step - 1];
+          statusEl.innerHTML =
+            '<span class="who ' + t.role + '">' + t.label + ':</span> ' + t.desc +
+            ' &nbsp;→&nbsp; took <b>' + t.tok + '</b> tokens, and they stay in the window.';
+        }
+        if (step >= TURNS.length) {
+          statusEl.innerHTML += '<br>The whole conversation now lives in the window — ' +
+            '<span class="who you">your questions</span> + ' +
+            '<span class="who agent">the agent’s answers</span> keep stacking up.';
+        }
+        nextBtn.textContent = step >= TURNS.length ? 'Replay ↺' : 'Next message ▶';
+        resetBtn.disabled = step === 0;
+      }
+
+      nextBtn.addEventListener('click', () => {
+        if (step >= TURNS.length) { step = 0; render(); return; }
+        step++; render();
+      });
+      resetBtn.addEventListener('click', () => { step = 0; render(); });
+
+      render();                                           // initial: empty, all available
+    })();
+  </script>
+</div>

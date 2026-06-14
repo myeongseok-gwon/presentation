@@ -5,9 +5,13 @@
 - AI Coding Agents: @differentiate.mov
 - @andrej-karpathy.png
 - @obsidian.png
+- Terms: List - Tokens - Context - Context Window
 - Context Window: @finite-context-window.mov
-- @context.png
-- @lost-in-the-middle.png
+- Implement: Animation about tokens are stocked up when user asks, and also System Answers. Similar to the following implement slide, Use  #D5D4DF: Available tokens, and denote user part taken tokens and system answer part tokens separately and visually easy to get understood for everyone. This question is corresponding to these tokens, this answer for that is corresponding to these tokens, like these.
+- See the Context: @context.png
+- Why Context Management?: List - Accuracy - Cost
+- `Accuracy: Lost in the middle`: @lost-in-the-middle.png
+- Cost: List - Pay as you use (token count) - Subscription Fee (with token limits)
 - Implement: I want you to visualize what if we ask a question in the long-context conversation. There are fixed number of tokens for context window. Use  #D5D4DF: Available, #D1869E: Taken and use @iconmonstr-database-thin.svg for the token. Even same question, cost differs if it is around beginning position or if conversation already has taken about 40%~60%. It is for informing, so simplify the number of tokens, and cost concepts, don't make it small. Just let them know since we scan from very beginning to focal question, cost varies.
 - List - Monitor - Start New Conversation
 - `Monitor: Use Statusline`: @claude-code-statusline.png
@@ -21,4 +25,5 @@
 - @handoff.png
 - Subagents: @subagents.mov
 - @cheating-sheet.png
+- Practice: List - Execute - Statusline - Instruction & Skills
 - Contributions: - Model-agnostic informing session of AI Coding Agents - Preserve key concepts while reducing contents that only related to programmers - (Takeaway) Choose one AI coding agents and enjoy growing with agents
