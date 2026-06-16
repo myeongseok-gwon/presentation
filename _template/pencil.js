@@ -29,8 +29,7 @@ export function initPencil(deck) {
   const W = 1920, H = 1080, DPR_MAX = 3;
   const COLORS = ['#c0392b', '#111111', '#3E7CB1', '#2e7d32']; // red default, ink, blue, green
 
-  let penMode = true;            // pencil draws when true (toggle in the toolbar)
-  let color = COLORS[0];
+  let color = COLORS[0];         // ink color (the pencil is always live — no on/off)
   let drawing = null;            // the in-progress stroke
   let dpr = 1, vw = 0, vh = 0;
 
@@ -123,18 +122,6 @@ export function initPencil(deck) {
   const ui = document.createElement('div');
   ui.className = 'pencil-ui';
 
-  const penBtn = document.createElement('button');
-  penBtn.className = 'pu-btn on'; penBtn.type = 'button'; penBtn.textContent = 'Pen on';
-  penBtn.title = 'Toggle Apple Pencil drawing';
-  penBtn.addEventListener('click', () => {
-    penMode = !penMode;
-    penBtn.classList.toggle('on', penMode);
-    penBtn.textContent = penMode ? 'Pen on' : 'Pen off';
-  });
-  ui.appendChild(penBtn);
-
-  const sep1 = document.createElement('span'); sep1.className = 'pu-sep'; ui.appendChild(sep1);
-
   COLORS.forEach((c, i) => {
     const d = document.createElement('button');
     d.className = 'pu-dot' + (i === 0 ? ' sel' : '');
@@ -143,7 +130,6 @@ export function initPencil(deck) {
       color = c;
       ui.querySelectorAll('.pu-dot').forEach((x) => x.classList.remove('sel'));
       d.classList.add('sel');
-      if (!penMode) { penMode = true; penBtn.classList.add('on'); penBtn.textContent = 'Pen on'; }
     });
     ui.appendChild(d);
   });
@@ -166,7 +152,7 @@ export function initPencil(deck) {
   /* ---------- pen input (capture phase, pen only) ---------- */
   function onDown(e) {
     if (ui.contains(e.target)) return;                 // tapping the toolbar must click, not draw
-    if (!penMode || e.pointerType !== 'pen') return;   // only the pencil draws
+    if (e.pointerType !== 'pen') return;               // only the pencil draws (always live)
     e.preventDefault(); e.stopPropagation();
     drawing = { color, pts: [] };
     strokesNow().push(drawing);
@@ -194,7 +180,6 @@ export function initPencil(deck) {
 
   // Stop reveal's swipe navigation for the STYLUS only; finger swipes still navigate.
   function onTouch(e) {
-    if (!penMode) return;
     const t = e.touches[0] || e.changedTouches[0];
     if (t && t.touchType === 'stylus') e.stopPropagation();
   }

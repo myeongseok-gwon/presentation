@@ -33,6 +33,7 @@ Presentation/
     theme.css                <- all geometry/fonts/box styles (edit :root to retune)
     build.mjs                <- draft.md  -> index.html + index.ref.html
     export.mjs               <- index*.html -> PDF + contact-sheet PNG
+    pencil.js                <- global Apple Pencil annotation layer (every deck)
     prototype.html           <- every slide type, for eyeballing box geometry
     vendor/reveal/           <- pinned reveal.js (committed, works offline)
     fonts/                   <- Tinos .woff2 (committed Times-New-Roman fallback)
@@ -65,6 +66,8 @@ identical regardless of category.
   web-embeddable, so **Tinos** (metric-identical, open) is bundled to guarantee
   screen == PDF on any machine. Single font only — no exceptions.
 - **No build framework.** Plain Node scripts. Node ≥ 20.
+- **Apple Pencil annotation:** every deck loads the shared `_template/pencil.js`
+  automatically (see its own section below) — draw on any slide on an iPad.
 
 ---
 
@@ -249,6 +252,46 @@ Export builds **both** variants; no-ref is primary.
 `<deck>/widgets/<slug>.html` (scoped HTML+JS+CSS — mouse control and text input
 welcome). It survives rebuilds and is version-controlled; the build injects it.
 Develop/test a widget in isolation, then rebuild.
+
+---
+
+# Apple Pencil annotation layer (global, identical on every deck)
+
+Every deck can be drawn on with an Apple Pencil on iPadOS Safari — live, on top
+of *any* slide. This is **one reusable component**, not per-deck code:
+`_template/pencil.js` exports `initPencil(deck)`, and `build.mjs`'s reveal init
+calls it for every deck (`deck.initialize().then(() => initPencil(deck))`).
+Because the same file is injected the same way everywhere, the feature is
+**identical across all decks by construction** — the same guarantee as
+`theme.css`. There is nothing to add per deck.
+
+**Interaction model (fixed):**
+- **Apple Pencil → draws** anywhere on the current slide; pressure sets line
+  width. It is **always live — there is no on/off toggle** (by request).
+- **Finger → navigates**: swipe to change slides, tap widgets/buttons normally.
+- **Mouse → untouched**, so desktop clicking and existing widgets still work.
+
+**Toolbar** (top-left, `.pencil-ui`): four ink colors (red default), **Undo**,
+**Clear** (this slide only). Annotations are stored **per slide** in the deck's
+own 1920×1080 space, so they persist as you navigate within a session and stick
+to the slide through reveal's rescale and iPad rotation. (Session-only; not
+saved to disk.)
+
+**Mechanism** (why pen-only capture doesn't block finger/mouse): one fixed,
+viewport-sized canvas that is **always `pointer-events:none`** (never blocks
+anything); capture-phase `window` listeners consume only `pointerType==='pen'`
+events (draw + `stopPropagation`), letting finger/mouse propagate; a
+capture-phase touch guard stops reveal's swipe-nav for the **stylus only**, so
+the pencil never flips slides mid-stroke.
+
+**Style & export:** palette/font follow the house style (ink red `#c0392b` etc.,
+single serif). `export.mjs` hides `.pencil-ui` and `canvas.pencil-overlay`, so
+the layer **never appears in the PDF / contact sheet**.
+
+**To retune** behavior or the toolbar, edit ONLY `_template/pencil.js` — every
+deck updates at once (decks import it at runtime, so no rebuild is needed for
+logic changes). A deck only needs a one-time **rebuild** to *adopt* the layer if
+its `index.html` predates this feature (the `import` is added by `build.mjs`).
 
 ---
 
