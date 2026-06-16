@@ -18,6 +18,7 @@ bird's-eye **contact sheet** of every slide.
 | Deck | Category | Present (live) | With references | Bird's-eye |
 |---|---|---|---|---|
 | **AI Coding Agents 101 for Everyone** | teaching | [open ▶](https://myeongseok-gwon.github.io/presentation/teaching/ai-coding-agents-101-for-everyone/index.html) | [open](https://myeongseok-gwon.github.io/presentation/teaching/ai-coding-agents-101-for-everyone/index.ref.html) | [PDF](teaching/ai-coding-agents-101-for-everyone/ai-coding-agents-101-for-everyone.pdf) |
+| **Apple Pencil on the Web** *(demo)* | demos | [open ▶](https://myeongseok-gwon.github.io/presentation/demos/apple-pencil/index.html) | [open](https://myeongseok-gwon.github.io/presentation/demos/apple-pencil/index.ref.html) | — |
 
 *Tip: arrow keys to navigate. On the context-window slide, drag the slider and
 press **Ask** — watch the cost climb as the question sits later, and trigger an

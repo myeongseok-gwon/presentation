@@ -1,0 +1,291 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>apple-pencil</title>
+<link rel="stylesheet" href="../../_template/vendor/reveal/reset.css">
+<link rel="stylesheet" href="../../_template/vendor/reveal/reveal.css">
+<link rel="stylesheet" href="../../_template/theme.css">
+</head><body class="with-refs">
+<div class="reveal"><div class="slides">
+<section class="title-slide" data-no-page><div class="canvas">
+      <div class="title">Apple Pencil on the Web</div>
+      <div class="meta">Edgar (Myeongseok) Gwon<br>2026</div></div></section>
+<section class="slide"><div class="canvas"><div class="header">How to test</div><div class="content"><div class="list"><div class="list-item">Open this page in Safari on your iPad</div><div class="list-item">Use a finger swipe to reach the next slide</div><div class="list-item">On the canvas, draw with your Apple Pencil — press harder for a thicker line</div></div></div><div class="pagenum">2/4</div></div></section>
+<section class="slide no-header"><div class="canvas"><div class="content"><div class="widget"><!-- draw.html — Apple Pencil drawing test (Pointer Events API).
+     Self-contained, scoped under #pencilpad. Confirms iPadOS Safari exposes the
+     pencil: pointerType 'pen' + live pressure + tilt. Pressure -> stroke width.
+     Interaction model:
+       • Apple Pencil (or mouse)  -> draws
+       • Finger swipe             -> passes through to reveal.js (navigate slides)
+       • "Finger" toggle          -> let a finger draw too (then use the arrows to move)
+     Strokes are stored as point lists and re-rendered on resize, so reveal's
+     responsive rescale never wipes the drawing and Undo is exact. Palette + serif
+     font follow the house style; blue #3E7CB1 / green #2e7d32 / red #c0392b accents. -->
+<div id="pencilpad">
+  <div class="pp-bar">
+    <div class="pp-readout" id="ppReadout">
+      <span class="pp-tag" id="ppType">pointer: —</span>
+      <span class="pp-tag" id="ppPress">pressure: —</span>
+      <span class="pp-tag" id="ppTilt">tilt: —</span>
+    </div>
+    <div class="pp-tools">
+      <span class="pp-swatches" id="ppSwatches"></span>
+      <button type="button" class="pp-btn" id="ppFinger">Finger: navigate</button>
+      <button type="button" class="pp-btn" id="ppUndo">Undo</button>
+      <button type="button" class="pp-btn pp-clear" id="ppClear">Clear</button>
+    </div>
+  </div>
+
+  <div class="pp-stage">
+    <canvas id="ppCanvas"></canvas>
+    <div class="pp-hint" id="ppHint">Draw here with your Apple&nbsp;Pencil</div>
+    <button type="button" class="pp-nav pp-prev" id="ppPrev" aria-label="previous slide">‹</button>
+    <button type="button" class="pp-nav pp-next" id="ppNext" aria-label="next slide">›</button>
+  </div>
+
+  <style>
+    #pencilpad { --ink:#111; --red:#c0392b; --green:#2e7d32; --blue:#3E7CB1;
+      --muted:#555; --line:#d8d8d8;
+      width:100%; height:100%; display:flex; flex-direction:column; gap:18px;
+      font-family:inherit; color:var(--ink); }
+
+    /* ---- top bar: live API readout (left) + tools (right) ---- */
+    #pencilpad .pp-bar { flex:none; display:flex; align-items:center;
+      justify-content:space-between; gap:24px; flex-wrap:wrap; }
+    #pencilpad .pp-readout { display:flex; gap:14px; flex-wrap:wrap; }
+    #pencilpad .pp-tag { font-size:28px; color:var(--muted); padding:6px 16px;
+      border:3px solid var(--line); border-radius:12px; white-space:nowrap;
+      font-variant-numeric:tabular-nums; }
+    #pencilpad .pp-tag.live { color:var(--blue); border-color:var(--blue); }
+
+    #pencilpad .pp-tools { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    #pencilpad .pp-swatches { display:flex; gap:10px; }
+    #pencilpad .pp-swatch { width:40px; height:40px; border-radius:50%;
+      border:3px solid #fff; box-shadow:0 0 0 3px var(--line); cursor:pointer;
+      padding:0; transition:box-shadow .15s ease, transform .15s ease; }
+    #pencilpad .pp-swatch.sel { box-shadow:0 0 0 4px var(--ink); transform:scale(1.08); }
+    #pencilpad .pp-btn { font-family:inherit; font-size:26px; padding:7px 22px;
+      border:3px solid var(--blue); border-radius:12px; background:#fff;
+      color:var(--blue); cursor:pointer; white-space:nowrap; }
+    #pencilpad .pp-btn:hover { background:var(--blue); color:#fff; }
+    #pencilpad .pp-btn.on { background:var(--green); border-color:var(--green); color:#fff; }
+    #pencilpad .pp-btn.pp-clear { border-color:var(--red); color:var(--red); }
+    #pencilpad .pp-btn.pp-clear:hover { background:var(--red); color:#fff; }
+
+    /* ---- drawing stage ---- */
+    #pencilpad .pp-stage { position:relative; flex:1 1 auto; min-height:0;
+      border:4px solid var(--line); border-radius:14px; overflow:hidden;
+      background:#fff; }
+    #pencilpad canvas { position:absolute; inset:0; width:100%; height:100%;
+      display:block; touch-action:none; cursor:crosshair; }
+    #pencilpad .pp-hint { position:absolute; inset:0; display:flex;
+      align-items:center; justify-content:center; pointer-events:none;
+      color:#c9c9c9; font-size:46px; transition:opacity .3s ease; }
+    #pencilpad .pp-hint.gone { opacity:0; }
+
+    #pencilpad .pp-nav { position:absolute; top:50%; transform:translateY(-50%);
+      width:74px; height:104px; border:none; border-radius:14px;
+      background:rgba(17,17,17,.06); color:var(--muted); font-size:64px;
+      line-height:1; cursor:pointer; font-family:inherit; padding:0;
+      display:flex; align-items:center; justify-content:center; }
+    #pencilpad .pp-nav:hover { background:rgba(17,17,17,.12); color:var(--ink); }
+    #pencilpad .pp-prev { left:18px; }
+    #pencilpad .pp-next { right:18px; }
+  </style>
+
+  <script>
+    (function () {
+      const root   = document.getElementById('pencilpad');
+      const stage  = root.querySelector('.pp-stage');
+      const canvas = root.querySelector('#ppCanvas');
+      const ctx    = canvas.getContext('2d');
+      const hint   = root.querySelector('#ppHint');
+
+      const elType  = root.querySelector('#ppType');
+      const elPress = root.querySelector('#ppPress');
+      const elTilt  = root.querySelector('#ppTilt');
+
+      const COLORS = ['#111111', '#c0392b', '#3E7CB1', '#2e7d32'];
+      let color = COLORS[0];
+      let fingerDraws = false;            // false => finger navigates (default)
+
+      // ---- swatches ----
+      const swWrap = root.querySelector('#ppSwatches');
+      COLORS.forEach((c, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pp-swatch' + (i === 0 ? ' sel' : '');
+        b.style.background = c;
+        b.addEventListener('click', () => {
+          color = c;
+          swWrap.querySelectorAll('.pp-swatch').forEach((s) => s.classList.remove('sel'));
+          b.classList.add('sel');
+        });
+        swWrap.appendChild(b);
+      });
+
+      // ---- stroke model (re-rendered on resize; exact undo) ----
+      const strokes = [];                 // [{ color, pts:[{x,y,w}] }]  x,y in CSS px
+      let cur = null;
+      let cssW = 0, cssH = 0, dpr = 1;
+
+      const BASE = 3.2, RANGE = 16;        // min width .. +pressure range (CSS px)
+      const widthFor = (p, type) =>
+        type === 'pen' ? BASE + RANGE * Math.max(0, Math.min(1, p))
+                       : BASE + RANGE * 0.45;          // mouse/finger: steady mid width
+
+      function fit() {
+        const r = stage.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) return;        // slide not visible yet
+        const ndpr = Math.min(window.devicePixelRatio || 1, 3);
+        if (Math.abs(r.width - cssW) < 0.5 && Math.abs(r.height - cssH) < 0.5
+            && ndpr === dpr) return;                    // unchanged
+        cssW = r.width; cssH = r.height; dpr = ndpr;
+        canvas.width  = Math.round(cssW * dpr);
+        canvas.height = Math.round(cssH * dpr);
+        redraw();
+      }
+
+      function redraw() {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, cssW, cssH);
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        for (const s of strokes) drawStroke(s);
+      }
+
+      function drawStroke(s) {
+        const p = s.pts;
+        ctx.strokeStyle = s.color;
+        if (p.length === 1) {                            // a dot
+          ctx.beginPath();
+          ctx.fillStyle = s.color;
+          ctx.arc(p[0].x, p[0].y, p[0].w / 2, 0, Math.PI * 2);
+          ctx.fill();
+          return;
+        }
+        for (let i = 1; i < p.length; i++) {             // width varies per segment
+          ctx.beginPath();
+          ctx.lineWidth = (p[i - 1].w + p[i].w) / 2;
+          ctx.moveTo(p[i - 1].x, p[i - 1].y);
+          ctx.lineTo(p[i].x, p[i].y);
+          ctx.stroke();
+        }
+      }
+
+      // ---- coordinate mapping (robust to reveal's CSS transform scale) ----
+      function toCSS(e) {
+        const r = canvas.getBoundingClientRect();
+        return { x: (e.clientX - r.left) * (cssW / r.width),
+                 y: (e.clientY - r.top)  * (cssH / r.height) };
+      }
+
+      function readout(e) {
+        elType.textContent  = 'pointer: ' + e.pointerType;
+        elType.classList.toggle('live', e.pointerType === 'pen');
+        const isPen = e.pointerType === 'pen';
+        elPress.textContent = 'pressure: ' + (isPen ? e.pressure.toFixed(2) : (e.pressure ? e.pressure.toFixed(2) : '—'));
+        elPress.classList.toggle('live', isPen);
+        const tx = Math.round(e.tiltX || 0), ty = Math.round(e.tiltY || 0);
+        elTilt.textContent  = 'tilt: ' + (isPen ? (tx + '° / ' + ty + '°') : '—');
+        elTilt.classList.toggle('live', isPen);
+      }
+
+      const draws = (e) => e.pointerType === 'pen' || e.pointerType === 'mouse'
+                           || (e.pointerType === 'touch' && fingerDraws);
+
+      function down(e) {
+        readout(e);
+        if (!draws(e)) return;                           // finger in nav mode -> reveal handles it
+        fit();
+        e.preventDefault();
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        hint.classList.add('gone');
+        const pt = toCSS(e); pt.w = widthFor(e.pressure, e.pointerType);
+        cur = { color, pts: [pt] };
+        strokes.push(cur);
+        drawStroke(cur);
+      }
+
+      function move(e) {
+        if (e.pointerType === 'pen') readout(e);         // keep the live numbers flowing
+        if (!cur || !draws(e)) return;
+        e.preventDefault();
+        const evs = (e.getCoalescedEvents && e.getCoalescedEvents().length)
+                    ? e.getCoalescedEvents() : [e];
+        for (const ev of evs) {
+          const pt = toCSS(ev); pt.w = widthFor(ev.pressure, e.pointerType);
+          const prev = cur.pts[cur.pts.length - 1];
+          cur.pts.push(pt);
+          ctx.strokeStyle = cur.color;
+          ctx.lineWidth = (prev.w + pt.w) / 2;
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(pt.x, pt.y);
+          ctx.stroke();
+        }
+      }
+
+      function up(e) {
+        if (!cur) return;
+        if (draws(e)) e.preventDefault();
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+        cur = null;
+      }
+
+      canvas.addEventListener('pointerdown', down);
+      canvas.addEventListener('pointermove', move);
+      canvas.addEventListener('pointerup', up);
+      canvas.addEventListener('pointercancel', up);
+      canvas.addEventListener('pointerleave', up);
+
+      // Keep the Apple Pencil from also triggering reveal's finger-swipe nav.
+      // Finger touches in nav mode are left alone so reveal can navigate.
+      canvas.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        const isStylus = t && t.touchType === 'stylus';
+        if (isStylus || fingerDraws) { e.preventDefault(); e.stopPropagation(); }
+      }, { passive: false });
+
+      // ---- controls ----
+      root.querySelector('#ppClear').addEventListener('click', () => {
+        strokes.length = 0; cur = null; redraw(); hint.classList.remove('gone');
+      });
+      root.querySelector('#ppUndo').addEventListener('click', () => {
+        strokes.pop(); redraw();
+        if (!strokes.length) hint.classList.remove('gone');
+      });
+      const fingerBtn = root.querySelector('#ppFinger');
+      fingerBtn.addEventListener('click', () => {
+        fingerDraws = !fingerDraws;
+        fingerBtn.textContent = fingerDraws ? 'Finger: draw' : 'Finger: navigate';
+        fingerBtn.classList.toggle('on', fingerDraws);
+      });
+
+      const deck = () => window.__deck || (window.Reveal && window.Reveal);
+      root.querySelector('#ppPrev').addEventListener('click', () => { const d = deck(); d && d.prev && d.prev(); });
+      root.querySelector('#ppNext').addEventListener('click', () => { const d = deck(); d && d.next && d.next(); });
+
+      // ---- sizing: initial + on resize / reveal rescale ----
+      window.addEventListener('resize', fit);
+      window.addEventListener('orientationchange', () => setTimeout(fit, 200));
+      if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
+      if (window.__deck && window.__deck.on) {
+        window.__deck.on('ready', fit);
+        window.__deck.on('slidechanged', fit);
+        window.__deck.on('resize', fit);
+      }
+      // poll a few times after load until the slide has real dimensions
+      let tries = 0;
+      (function warm() { fit(); if (++tries < 30 && cssW < 2) setTimeout(warm, 100); })();
+    })();
+  </script>
+</div>
+</div></div><div class="pagenum">3/4</div></div></section>
+<section class="slide"><div class="canvas"><div class="header">Why this works</div><div class="content"><div class="body">Safari on iPadOS exposes the Apple Pencil through the standard Pointer Events API — a pen pointer type plus live pressure and tilt. No native app and no plugin: a plain web page reads them directly. If the pencil drew above, our reveal.js decks can carry the same live annotations.</div></div><div class="pagenum">4/4</div></div></section>
+</div></div>
+<script type="module">
+import Reveal from '../../_template/vendor/reveal/reveal.esm.js';
+const deck = new Reveal({ width:1920, height:1080, margin:0.04, center:false, hash:true,
+  slideNumber:false, transition:'none' });
+window.__deck = deck;            // exposed so export.mjs can reconfigure/navigate
+deck.initialize();
+</script></body></html>
