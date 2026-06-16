@@ -398,10 +398,11 @@ ${body.join('\n')}
 </div></div>
 <script type="module">
 import Reveal from '${relTemplate}/vendor/reveal/reveal.esm.js';
+import { initPencil } from '${relTemplate}/pencil.js';
 const deck = new Reveal({ width:1920, height:1080, margin:0.04, center:false, hash:true,
   slideNumber:false, transition:'none' });
 window.__deck = deck;            // exposed so export.mjs can reconfigure/navigate
-deck.initialize();
+deck.initialize().then(() => initPencil(deck));   // global Apple Pencil annotation layer
 </script></body></html>`;
 }
 

@@ -72,7 +72,8 @@ if (!existsSync(path.join(deckDir, 'index.html')))
 // (reconfigured below) instead of fighting its transform with !important.
 const EXPORT_CSS = `
   .reveal .controls, .reveal .progress, .reveal .slide-number { display: none !important; }
-  .reveal .fragment { opacity: 1 !important; visibility: visible !important; }`;
+  .reveal .fragment { opacity: 1 !important; visibility: visible !important; }
+  .pencil-ui, canvas.pencil-overlay { display: none !important; }`;
 
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 

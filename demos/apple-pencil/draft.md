@@ -1,4 +1,5 @@
 - Title: Apple Pencil on the Web, year: 2026
-- How to test: List - Open this page in Safari on your iPad - Use a finger swipe to reach the next slide - On the canvas, draw with your Apple Pencil — press harder for a thicker line
-- Implement(draw): full-bleed pressure-sensitive canvas; pen draws, finger swipes to navigate, live readout of pointerType / pressure / tilt; on-screen arrows as a fallback
-- Why this works: Safari on iPadOS exposes the Apple Pencil through the standard Pointer Events API — a pen pointer type plus live pressure and tilt. No native app and no plugin: a plain web page reads them directly. If the pencil drew above, our reveal.js decks can carry the same live annotations.
+- How to use: List - Pick up your Apple Pencil and draw on any slide — press harder for a thicker line - Swipe with a finger to move between slides - Top-left toolbar: toggle the pen, pick a color, undo, or clear the slide
+- Annotate this: List - Circle what matters - Underline a key phrase - Cross out what does not
+- Your whiteboard: This whole slide is blank on purpose — scribble, sketch a diagram, work a derivation. Each slide keeps its own ink, so swipe away and back and it is still here.
+- Why this works: Safari on iPadOS exposes the Apple Pencil through the standard Pointer Events API — a pen pointer type plus live pressure. The pen draws while a finger still navigates, so annotation lives on top of every slide in the deck, with no native app and no plugin.
