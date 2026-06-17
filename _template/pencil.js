@@ -33,6 +33,18 @@ export function initPencil(deck) {
   let drawing = null;            // the in-progress stroke
   let dpr = 1, vw = 0, vh = 0;
 
+  /* Parallax calibration: held at a steep tilt, the pencil's registered contact
+     point sits slightly off from where you sight the line, so ink lands a touch
+     low. `cal` is a pure DISPLAY offset (slide px) applied at render time, so
+     nudging it shifts all ink live; persisted per origin (shared across decks).
+     Default leans the ink up a little, matching the usual "drawings land under"
+     report — fine-tune it on-device with the Calib pad. */
+  const CAL_KEY = 'pencilCal';
+  let cal = { x: 0, y: -12 };
+  try { const s = JSON.parse(localStorage.getItem(CAL_KEY) || 'null');
+    if (s && Number.isFinite(s.x) && Number.isFinite(s.y)) cal = s; } catch (_) {}
+  const saveCal = () => { try { localStorage.setItem(CAL_KEY, JSON.stringify(cal)); } catch (_) {} };
+
   const store = new Map();       // slideKey -> [ { color, pts:[{x,y,w}] } ]  (slide coords)
   const slideKey = () => { const i = deck.getIndices(); return i.h + '.' + (i.v || 0); };
   const strokesNow = () => {
@@ -57,7 +69,9 @@ export function initPencil(deck) {
   }
   const toSlide = (cx, cy) => { const r = slideRect();
     return { x: (cx - r.left) / r.width * W, y: (cy - r.top) / r.height * H }; };
-  const project = (p, r) => ({ x: r.left + p.x / W * r.width, y: r.top + p.y / H * r.height });
+  // render with the calibration offset baked in (contact points are stored raw)
+  const project = (p, r) => ({ x: r.left + (p.x + cal.x) / W * r.width,
+                               y: r.top + (p.y + cal.y) / H * r.height });
 
   const BASE = 2.5, RANGE = 14;                       // stroke width (slide px): min .. +pressure
   const widthOf = (pr) => BASE + RANGE * Math.max(0, Math.min(1, pr || 0));
@@ -115,7 +129,22 @@ export function initPencil(deck) {
       .pencil-ui .pu-dot{width:26px;height:26px;border-radius:50%;border:2px solid #fff;
         box-shadow:0 0 0 2px #d8d8d8;padding:0;}
       .pencil-ui .pu-dot.sel{box-shadow:0 0 0 3px #111;}
-      .pencil-ui .pu-sep{width:1px;height:26px;background:#e2e2e2;}`;
+      .pencil-ui .pu-sep{width:1px;height:26px;background:#e2e2e2;}
+      .pencil-ui .pu-cal{position:absolute;top:calc(100% + 8px);left:0;display:none;
+        flex-direction:column;align-items:center;gap:8px;padding:12px 14px;
+        border:2px solid #d8d8d8;border-radius:14px;background:#fff;
+        box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:188px;}
+      .pencil-ui .pu-cal.open{display:flex;}
+      .pencil-ui .pu-pad{display:grid;grid-template-columns:repeat(3,40px);
+        grid-template-rows:repeat(3,40px);gap:6px;align-items:center;justify-items:center;}
+      .pencil-ui .pu-nudge{width:40px;height:40px;font-size:20px;line-height:1;border-radius:9px;
+        border:2px solid #3E7CB1;background:#fff;color:#3E7CB1;}
+      .pencil-ui .pu-nudge:hover{background:#3E7CB1;color:#fff;}
+      .pencil-ui .pu-reset{font-size:16px;border:none;background:none;color:#555;
+        text-decoration:underline;padding:0;}
+      .pencil-ui .pu-val{font-size:18px;color:#111;font-variant-numeric:tabular-nums;}
+      .pencil-ui .pu-cal-hint{font-size:15px;color:#777;text-align:center;line-height:1.25;
+        max-width:200px;}`;
     document.head.appendChild(st);
   }
 
@@ -146,6 +175,48 @@ export function initPencil(deck) {
   clearBtn.title = 'Clear this slide';
   clearBtn.addEventListener('click', () => { store.set(slideKey(), []); redraw(); });
   ui.appendChild(clearBtn);
+
+  const sep3 = document.createElement('span'); sep3.className = 'pu-sep'; ui.appendChild(sep3);
+
+  /* ---- parallax calibration pad (nudge ink under the pencil tip) ---- */
+  const calBtn = document.createElement('button');
+  calBtn.className = 'pu-btn'; calBtn.type = 'button'; calBtn.textContent = 'Calib';
+  calBtn.title = 'Calibrate the pen offset';
+  ui.appendChild(calBtn);
+
+  const cap = document.createElement('div'); cap.className = 'pu-cal';
+  const valEl = document.createElement('div'); valEl.className = 'pu-val';
+  const showVal = () => { valEl.textContent = 'offset  ' + cal.x + ', ' + cal.y + ' px'; };
+  const bump = (dx, dy) => { cal = { x: cal.x + dx, y: cal.y + dy }; saveCal(); showVal(); redraw(); };
+
+  const pad = document.createElement('div'); pad.className = 'pu-pad';
+  // 3x3 grid: only up/left/right/down cells carry a button (corners + center empty)
+  const STEP = 2;
+  const cells = [ null, ['▲', 0, -STEP], null,
+                  ['◀', -STEP, 0], null, ['▶', STEP, 0],
+                  null, ['▼', 0, STEP], null ];
+  cells.forEach((c) => {
+    if (!c) { pad.appendChild(document.createElement('span')); return; }
+    const b = document.createElement('button');
+    b.className = 'pu-nudge'; b.type = 'button'; b.textContent = c[0];
+    b.addEventListener('click', () => bump(c[1], c[2]));
+    pad.appendChild(b);
+  });
+
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'pu-reset'; resetBtn.type = 'button'; resetBtn.textContent = 'reset';
+  resetBtn.addEventListener('click', () => { cal = { x: 0, y: 0 }; saveCal(); showVal(); redraw(); });
+
+  const calHint = document.createElement('div'); calHint.className = 'pu-cal-hint';
+  calHint.textContent = 'Draw a short line, then nudge until the ink sits under your pencil tip.';
+
+  cap.appendChild(valEl); cap.appendChild(pad); cap.appendChild(resetBtn); cap.appendChild(calHint);
+  ui.appendChild(cap);
+  showVal();
+  calBtn.addEventListener('click', () => {
+    const open = cap.classList.toggle('open');
+    calBtn.classList.toggle('on', open);
+  });
 
   document.body.appendChild(ui);
 
