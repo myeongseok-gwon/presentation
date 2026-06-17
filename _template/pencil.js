@@ -115,6 +115,14 @@ export function initPencil(deck) {
     const st = document.createElement('style');
     st.id = 'pencil-ui-style';
     st.textContent = `
+      /* The pencil should only draw — never let it select or drag slide text /
+         images (that's what was interrupting drawing). Widget inputs keep normal
+         text selection so forms still work. */
+      .reveal, .reveal .slides section{-webkit-user-select:none;user-select:none;
+        -webkit-touch-callout:none;}
+      .reveal img{-webkit-user-drag:none;-webkit-user-select:none;user-select:none;}
+      .reveal input,.reveal textarea,.reveal select,.reveal [contenteditable]{
+        -webkit-user-select:text;user-select:text;}
       .pencil-ui{position:fixed;left:18px;top:14px;z-index:9999;display:flex;align-items:center;
         gap:10px;padding:8px 12px;border:2px solid #d8d8d8;border-radius:14px;
         background:rgba(255,255,255,.88);font-family:inherit;opacity:.82;transition:opacity .2s;}
