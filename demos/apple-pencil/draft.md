@@ -1,4 +1,4 @@
-- Title: Apple Pencil on the Web, year: 2026
+- Title: Apple Pencil on the Web, year: 2026, Apple Pencil
 - How to use: List - Pick up your Apple Pencil and draw on any slide — press harder for a thicker line - Swipe with a finger to move between slides - Top-left toolbar: toggle the pen, pick a color, undo, or clear the slide
 - Annotate this: List - Circle what matters - Underline a key phrase - Cross out what does not
 - Your whiteboard: This whole slide is blank on purpose — scribble, sketch a diagram, work a derivation. Each slide keeps its own ink, so swipe away and back and it is still here.

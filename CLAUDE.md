@@ -33,7 +33,7 @@ Presentation/
     theme.css                <- all geometry/fonts/box styles (edit :root to retune)
     build.mjs                <- draft.md  -> index.html + index.ref.html
     export.mjs               <- index*.html -> PDF + contact-sheet PNG
-    pencil.js                <- global Apple Pencil annotation layer (every deck)
+    pencil.js                <- Apple Pencil annotation layer (opt-in per deck)
     prototype.html           <- every slide type, for eyeballing box geometry
     vendor/reveal/           <- pinned reveal.js (committed, works offline)
     fonts/                   <- Tinos .woff2 (committed Times-New-Roman fallback)
@@ -66,8 +66,9 @@ identical regardless of category.
   web-embeddable, so **Tinos** (metric-identical, open) is bundled to guarantee
   screen == PDF on any machine. Single font only — no exceptions.
 - **No build framework.** Plain Node scripts. Node ≥ 20.
-- **Apple Pencil annotation:** every deck loads the shared `_template/pencil.js`
-  automatically (see its own section below) — draw on any slide on an iPad.
+- **Apple Pencil annotation:** opt-in per deck via an `Apple Pencil` title flag —
+  the deck then loads the shared `_template/pencil.js` so you can draw on any
+  slide on an iPad. Off by default (see its own section below).
 
 ---
 
@@ -103,10 +104,12 @@ the exported `*.contact.png`.
 `-` inside a line stays *within* that slide.
 
 **Slide 1 — title:**
-`- Title: <title>, year: <YYYY>, [Presenter: <name>], [Collaborator: <name>], [No Laptops No Cellphones]`
+`- Title: <title>, year: <YYYY>, [Presenter: <name>], [Collaborator: <name>], [No Laptops No Cellphones], [Apple Pencil]`
 - Presenter defaults to **Edgar (Myeongseok) Gwon**; year defaults to the current year.
 - Collaborator rendered only if present. The `No Laptops No Cellphones` flag places
   `how-to-speak-lecture-reference/no-laptop-no-phone.png` bottom-center.
+- The `Apple Pencil` flag (its own comma-field) **opts this deck into the Apple
+  Pencil annotation layer** — off otherwise. See its section below.
 - This is the ONLY slide with presenter/year/collaborator, and it has **no page number**.
 
 **Every other slide:**
@@ -255,15 +258,23 @@ Develop/test a widget in isolation, then rebuild.
 
 ---
 
-# Apple Pencil annotation layer (global, identical on every deck)
+# Apple Pencil annotation layer (opt-in per deck, identical when on)
 
-Every deck can be drawn on with an Apple Pencil on iPadOS Safari — live, on top
-of *any* slide. This is **one reusable component**, not per-deck code:
-`_template/pencil.js` exports `initPencil(deck)`, and `build.mjs`'s reveal init
-calls it for every deck (`deck.initialize().then(() => initPencil(deck))`).
-Because the same file is injected the same way everywhere, the feature is
-**identical across all decks by construction** — the same guarantee as
-`theme.css`. There is nothing to add per deck.
+A deck **that opts in** can be drawn on with an Apple Pencil on iPadOS Safari —
+live, on top of *any* slide. It is **off by default**; normal decks (teaching,
+paper-review, …) are never affected.
+
+**Enable it** by adding a bare `Apple Pencil` flag as its own comma-field on the
+title line — e.g. `- Title: My Talk, year: 2026, Apple Pencil`. Only then does
+`build.mjs` inject the layer (`import { initPencil }` +
+`deck.initialize().then(() => initPencil(deck))`). Rebuild after toggling the
+flag. (To enable for an existing deck, add the flag and rebuild; to disable,
+remove the flag and rebuild.)
+
+It is **one reusable component**, not per-deck code: `_template/pencil.js`
+exports `initPencil(deck)`, injected the same way into every opted-in deck — so
+the feature is **identical across all such decks by construction** (the same
+guarantee as `theme.css`). Currently enabled on: `demos/apple-pencil`.
 
 **Interaction model (fixed):**
 - **Apple Pencil → draws** anywhere on the current slide; pressure sets line
@@ -289,9 +300,10 @@ single serif). `export.mjs` hides `.pencil-ui` and `canvas.pencil-overlay`, so
 the layer **never appears in the PDF / contact sheet**.
 
 **To retune** behavior or the toolbar, edit ONLY `_template/pencil.js` — every
-deck updates at once (decks import it at runtime, so no rebuild is needed for
-logic changes). A deck only needs a one-time **rebuild** to *adopt* the layer if
-its `index.html` predates this feature (the `import` is added by `build.mjs`).
+**opted-in** deck updates at once (those decks import it at runtime, so no
+rebuild is needed for logic changes). Turning the layer on or off for a deck is
+the title-flag toggle above, which *does* require a rebuild (it changes the
+emitted `index.html`).
 
 ---
 

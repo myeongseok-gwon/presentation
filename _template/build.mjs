@@ -314,6 +314,12 @@ const lines = (await readFile(draftPath, 'utf8')).split('\n')
   .filter((l) => /^\s*-\s+/.test(l))
   .map((l) => l.replace(/^\s*-\s+/, '').trim());
 
+// Apple Pencil annotation layer is OPT-IN per deck: add a bare "Apple Pencil"
+// flag as its own comma-field on the title line (like "No Laptops No Cellphones").
+// Off by default so normal decks are never affected.
+const titleFields = (lines[0] || '').split(',').map((s) => s.trim());
+const pencilEnabled = titleFields.slice(1).some((f) => /^(apple\s+)?pencil$/i.test(f));
+
 const refMap = await loadRefs(assetsDir);
 const cachePath = path.join(assetsDir, 'refs.cache.json');
 const cache = existsSync(cachePath) ? JSON.parse(await readFile(cachePath, 'utf8')) : {};
@@ -386,6 +392,11 @@ async function assemble({ withRefs }) {
       `<div class="reflist">${refList.map((r) => `<div class="ref">${esc(r)}</div>`).join('')}</div>` +
       `<div class="pagenum">${total}/${total}</div></div></section>`);
   }
+  // Apple Pencil annotation layer: injected ONLY when this deck opts in (title flag).
+  const pencilImport = pencilEnabled ? `\nimport { initPencil } from '${relTemplate}/pencil.js';` : '';
+  const pencilInit = pencilEnabled
+    ? `deck.initialize().then(() => initPencil(deck));   // Apple Pencil annotation (opt-in)`
+    : `deck.initialize();`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(path.basename(deckDir))}</title>
@@ -397,12 +408,11 @@ async function assemble({ withRefs }) {
 ${body.join('\n')}
 </div></div>
 <script type="module">
-import Reveal from '${relTemplate}/vendor/reveal/reveal.esm.js';
-import { initPencil } from '${relTemplate}/pencil.js';
+import Reveal from '${relTemplate}/vendor/reveal/reveal.esm.js';${pencilImport}
 const deck = new Reveal({ width:1920, height:1080, margin:0.04, center:false, hash:true,
   slideNumber:false, transition:'none' });
 window.__deck = deck;            // exposed so export.mjs can reconfigure/navigate
-deck.initialize().then(() => initPencil(deck));   // global Apple Pencil annotation layer
+${pencilInit}
 </script></body></html>`;
 }
 
